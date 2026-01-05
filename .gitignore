@@ -1,0 +1,28 @@
+# IDE
+.idea/
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+
+# Java / Spring Boot
+target/
+*.jar
+*.war
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archives & docs
+*.zip
+*.pdf
+*.pptx
+*.docx
+*.xlsx
