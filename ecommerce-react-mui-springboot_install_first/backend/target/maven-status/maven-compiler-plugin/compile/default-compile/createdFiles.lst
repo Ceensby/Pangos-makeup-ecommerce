@@ -1,0 +1,11 @@
+com\example\ecomm\DataSeeder$1.class
+com\example\ecomm\model\Order.class
+com\example\ecomm\DataSeeder.class
+com\example\ecomm\EcommApplication.class
+com\example\ecomm\repository\ProductRepository.class
+com\example\ecomm\DataSeeder$CategoryMapping.class
+com\example\ecomm\model\Product.class
+com\example\ecomm\repository\OrderRepository.class
+com\example\ecomm\controller\ProductController.class
+com\example\ecomm\controller\OrderController.class
+com\example\ecomm\dto\ProductDTO.class
