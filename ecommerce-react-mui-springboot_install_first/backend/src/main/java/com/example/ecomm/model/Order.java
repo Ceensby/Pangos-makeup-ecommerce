@@ -15,6 +15,7 @@ public class Order {
     private String address;
     private String creditCard; // Simplified for demo
     private String status;
+    private Double amount; // Total order amount
     private LocalDateTime createdAt;
 
     public Order() {
@@ -83,5 +84,13 @@ public class Order {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 }
