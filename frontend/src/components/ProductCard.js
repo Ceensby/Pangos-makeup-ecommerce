@@ -11,7 +11,9 @@ import { resolveImageUrl } from "../config";
 import { useNavigate } from "react-router-dom";
 
 export default function ProductCard({ product }) {
+    // Cart action
     const { add } = useCart();
+    // Navigation helper
     const navigate = useNavigate();
 
     return (
@@ -23,6 +25,7 @@ export default function ProductCard({ product }) {
                 height: "100%",
             }}
         >
+            {/* Product image */}
             <CardMedia
                 component="img"
                 height="180"
@@ -31,6 +34,7 @@ export default function ProductCard({ product }) {
                 sx={{ objectFit: "contain", p: 2, bgcolor: "#f9f9f9" }}
             />
 
+            {/* Product info */}
             <CardContent sx={{ flexGrow: 1 }}>
                 <Typography
                     gutterBottom
@@ -40,10 +44,12 @@ export default function ProductCard({ product }) {
                     {product.name}
                 </Typography>
 
+                {/* Debug and display product ID */}
                 <Typography variant="caption" display="block" color="text.secondary">
                     ID: {product.id ?? "MISSING"}
                 </Typography>
 
+                {/* Product price */}
                 <Typography
                     variant="h6"
                     color="primary.main"
@@ -52,6 +58,8 @@ export default function ProductCard({ product }) {
                     {formatTRY(product.price)}
                 </Typography>
             </CardContent>
+
+            {/* Card actions */}
             <CardActions sx={{ p: 2, pt: 0 }}>
                 <Button
                     variant="contained"
@@ -73,6 +81,8 @@ export default function ProductCard({ product }) {
                     Add to Cart
                 </Button>
 
+
+                {/* Navigate to product detail page */}
                 <Button
                     variant="outlined"
                     size="small"

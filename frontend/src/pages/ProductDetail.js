@@ -17,7 +17,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import CardMedia from "@mui/material/CardMedia";
 
 export default function ProductDetail() {
+  // Read product id from URL
   const { id } = useParams();
+  // Cart context
   const { add } = useCart();
   const navigate = useNavigate();
 
@@ -25,6 +27,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
+  // Fetch product details on mount or id change
   useEffect(() => {
     let cancelled = false;
 
@@ -51,14 +55,16 @@ export default function ProductDetail() {
     };
   }, [id]);
 
+
+// Add product to cart
   const handleAddToCart = () => {
     if (!product) return;
     console.log("ProductDetail: Add to cart clicked", product);
     add(product);
-    // Optional: Add local visual feedback if desired, 
-    // but rely on Sidebar update for now as primary indicator.
   };
 
+
+  // Loading state UI
   if (loading) {
     return (
       <Container sx={{ py: 4, display: "flex", justifyContent: "center" }}>
@@ -67,6 +73,7 @@ export default function ProductDetail() {
     );
   }
 
+  // Error state UI
   if (error || !product) {
     return (
       <Container sx={{ py: 4 }}>
@@ -83,7 +90,7 @@ export default function ProductDetail() {
   return (
     <Container sx={{ py: 4 }}>
       <Grid container spacing={4}>
-        {/* Left: Image */}
+        {/* Left: Image Area*/}
         <Grid item xs={12} md={6}>
           <CardMedia
             component="img"

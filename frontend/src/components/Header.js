@@ -16,7 +16,7 @@ import { styled, alpha } from "@mui/material/styles";
 import { useCart } from "../context/CartContext";
 import pangosLogo from "../assets/pangos-logo.png";
 
-// Styled search input container
+// Search input container
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
@@ -42,7 +42,7 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
-// Styled input field
+// input style
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   width: '100%',
@@ -66,23 +66,23 @@ export default function Header() {
     0
   );
 
-  // Sync search input with URL query parameter
+  //  Keep input in sync with URL
   useEffect(() => {
     const qParam = searchParams.get('q');
     setSearchValue(qParam || '');
   }, [searchParams]);
 
-  // Handle search button click or Enter key
+  // Run search (update URL)
   const handleSearch = () => {
     if (!searchValue.trim()) return;
 
-    // Keep existing URL params, add or update 'q'
+    // Add or update 'q'
     const params = new URLSearchParams(searchParams);
     params.set('q', searchValue.trim());
     navigate(`/?${params.toString()}`);
   };
 
-  // Clear search input and remove 'q' param
+  // Clear search input
   const handleClear = () => {
     setSearchValue('');
 
@@ -92,7 +92,7 @@ export default function Header() {
     navigate(paramString ? `/?${paramString}` : '/');
   };
 
-  // Trigger search on Enter key
+  // Search on Enter
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -136,7 +136,7 @@ export default function Header() {
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyPress={handleKeyPress}
           />
-          {/* Clear button (shows when there's text) */}
+          {/* Clear button */}
           {searchValue && (
             <IconButton
               size="small"
@@ -154,9 +154,10 @@ export default function Header() {
           )}
         </Search>
 
+        {/* Spacer */}
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* Cart icon with item count badge */}
+        {/* Cart button */}
         <IconButton
           color="inherit"
           aria-label="cart"

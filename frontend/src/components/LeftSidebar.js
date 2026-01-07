@@ -1,5 +1,3 @@
-// LeftSidebar.js - Category navigation sidebar for filtering products
-
 import React from 'react';
 import { Box, List, ListItemButton, ListItemText, ListSubheader, Divider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -12,28 +10,37 @@ const categories = {
     "SpecialSets": ["MakeupSets", "SetsForGifts"]
 };
 
-const sidebarBg = '#ffeef5'; // Light pink background
+// Light pink background
+const sidebarBg = '#ffeef5';
 
 const LeftSidebar = () => {
+    //Navigation Helper
     const navigate = useNavigate();
 
-    // Navigate to home with category filter params
+    // Navigate to home with category filters
     const handleCategoryClick = (main, sub) => {
         navigate(`/?mainCategory=${main}&subCategory=${sub}`);
     };
 
     return (
         <Box sx={{ width: 300, bgcolor: sidebarBg, minHeight: '100vh', padding: 2, borderRight: '1px solid #ffccde' }}>
+
+            {/* Category list */}
             <List subheader={<ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 'bold' }}>CATEGORIES</ListSubheader>}>
+
                 {/* Render each category with subcategories */}
                 {Object.entries(categories).map(([main, subs]) => (
                     <Box key={main}>
                         <ListItemText primary={main} sx={{ pl: 2, fontWeight: 'bold', color: '#880e4f' }} />
+
+                        {/* Subcategory buttons */}
                         {subs.map((sub) => (
                             <ListItemButton key={sub} onClick={() => handleCategoryClick(main, sub)} sx={{ pl: 4 }}>
                                 <ListItemText primary={sub} />
                             </ListItemButton>
                         ))}
+
+                        {/* Separator for easy looking content */}
                         <Divider variant="middle" sx={{ my: 1 }} />
                     </Box>
                 ))}

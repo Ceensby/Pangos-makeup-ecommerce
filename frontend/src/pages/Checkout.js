@@ -4,30 +4,45 @@ import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { formatTRY } from '../utils/formatPrice';
 
+
 const Checkout = () => {
+  // Cart data and actions
   const { items, clear } = useCart();
+
+  // Checkout form state
   const [formData, setFormData] = useState({
     customerName: '',
     email: '',
     address: '',
     creditCard: ''
   });
+
+  // Created order id
   const [orderId, setOrderId] = useState(null);
 
+  // Calculate total amount from cart items
   const cartTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+  // Update form fields by input name
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Submit order to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+
+      // Build request payload
       const orderData = {
         ...formData,
         amount: cartTotal
       };
+
+      // Create order
       const response = await axios.post('http://localhost:8080/api/orders', orderData);
+
+      // Save returned order id
       setOrderId(response.data.id);
       clear(); // Clear cart after successful order
     } catch (error) {
@@ -35,6 +50,7 @@ const Checkout = () => {
     }
   };
 
+  // Confirmation screen after order is created
   if (orderId) {
     return (
       <Box textAlign="center" mt={5}>
@@ -45,10 +61,13 @@ const Checkout = () => {
     );
   }
 
+
   return (
     <Box maxWidth={600} mx="auto">
+      {/* Page title */}
       <Typography variant="h4" mb={3}>Guest Checkout</Typography>
 
+      {/* Empty cart state */}
       {items.length === 0 ? (
         <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary">Your cart is empty</Typography>
@@ -56,6 +75,8 @@ const Checkout = () => {
         </Paper>
       ) : (
         <>
+
+          {/* Order summary */}
           <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
             <Typography variant="h6" gutterBottom>Order Summary</Typography>
             {items.map(item => (
@@ -64,12 +85,15 @@ const Checkout = () => {
                 <Typography variant="body2">{formatTRY(item.price * item.quantity)}</Typography>
               </Box>
             ))}
+
+            {/* Total row */}
             <Box display="flex" justifyContent="space-between" mt={2} pt={2} borderTop="1px solid #ddd">
               <Typography variant="h6">Total:</Typography>
               <Typography variant="h6" color="primary">{formatTRY(cartTotal)}</Typography>
             </Box>
           </Paper>
 
+          {/* Checkout form */}
           <Paper elevation={3} sx={{ p: 4 }}>
             <form onSubmit={handleSubmit}>
               <TextField
@@ -89,6 +113,7 @@ const Checkout = () => {
                 required onChange={handleChange}
               />
 
+              {/* Submit order */}
               <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 3 }}>
                 Place Order - {formatTRY(cartTotal)}
               </Button>

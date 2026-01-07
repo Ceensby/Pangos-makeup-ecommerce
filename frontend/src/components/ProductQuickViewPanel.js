@@ -1,5 +1,3 @@
-// ProductQuickViewPanel.js - Side drawer panel displaying detailed product information
-
 import React from 'react';
 import {
     Drawer, Box,
@@ -29,7 +27,7 @@ function ProductQuickViewPanel({ open, onClose, product, loading }) {
     const renderDetails = (details) => {
         if (!details) return <Typography color="text.secondary">No details available.</Typography>;
 
-        // Try parsing JSON string
+        // Try to parse JSON string
         let parsedDetails = details;
         if (typeof details === 'string') {
             try {
@@ -39,7 +37,7 @@ function ProductQuickViewPanel({ open, onClose, product, loading }) {
             }
         }
 
-        // Render object as key-value chips (alternating green/pink colors)
+        // Render object as key-value chips
         if (typeof parsedDetails === 'object' && !Array.isArray(parsedDetails)) {
             return (
                 <Stack spacing={1.5}>
@@ -119,6 +117,7 @@ function ProductQuickViewPanel({ open, onClose, product, loading }) {
                     </Box>
                 ) : product ? (
                     <Box>
+
                         {/* Product Image */}
                         {product.imageUrl && (
                             <Box

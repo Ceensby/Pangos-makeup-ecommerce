@@ -3,19 +3,19 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#e91e63', // Pink
+      main: '#e91e63',
       light: '#f8bbd0',
       dark: '#c2185b',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#4caf50', // Green
+      main: '#4caf50',
       light: '#a5d6a7',
       dark: '#388e3c',
       contrastText: '#fff',
     },
     background: {
-      default: '#fdfbf7', // Warm off-white
+      default: '#fdfbf7',
       paper: '#ffffff',
     },
   },

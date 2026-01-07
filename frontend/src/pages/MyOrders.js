@@ -19,23 +19,33 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import { formatTRY } from '../utils/formatPrice';
 import axios from 'axios';
 
+// Backend endpoint
 const API_URL = 'http://localhost:8080/api/orders';
 
 function MyOrders() {
+
+    // Navigation helper
     const navigate = useNavigate();
+
+    // Orders state
     const [orders, setOrders] = useState([]);
+
+    // UI states
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Load orders on first render
     useEffect(() => {
         fetchOrders();
     }, []);
 
+    // Fetch orders list from backend
     const fetchOrders = async () => {
         setLoading(true);
         setError('');
         try {
             const response = await axios.get(API_URL);
+
             // UI-level filter: Hide orders created before 2026-01-07 03:00:00 Turkey time
             const CUTOFF_TIMESTAMP = new Date('2026-01-07T03:00:00').getTime();
 
@@ -54,14 +64,17 @@ function MyOrders() {
         }
     };
 
+    // Go to payment page with orderId in query
     const handlePayClick = (orderId) => {
         navigate(`/payment?orderId=${orderId}`);
     };
 
+    // Map status to MUI Chip color
     const getStatusColor = (status) => {
         return status === 'PAID' ? 'success' : 'warning';
     };
 
+    // Loading UI
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -72,16 +85,19 @@ function MyOrders() {
 
     return (
         <Box>
+            {/* Page title */}
             <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                 My Orders
             </Typography>
 
+            {/* Error message */}
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                     {error}
                 </Alert>
             )}
 
+            {/* Empty state for orders.*/}
             {orders.length === 0 ? (
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <Typography color="text.secondary">
@@ -92,6 +108,7 @@ function MyOrders() {
                     </Button>
                 </Paper>
             ) : (
+                // Orders table
                 <TableContainer component={Paper} elevation={2}>
                     <Table>
                         <TableHead sx={{ bgcolor: 'grey.100' }}>
@@ -110,9 +127,13 @@ function MyOrders() {
                                     <TableCell>#{order.id}</TableCell>
                                     <TableCell>{order.customerName}</TableCell>
                                     <TableCell>{order.email}</TableCell>
+
+                                    {/* Price formatting */}
                                     <TableCell align="right">
                                         {order.amount ? formatTRY(order.amount) : 'N/A'}
                                     </TableCell>
+
+                                    {/* Status badge */}
                                     <TableCell align="center">
                                         <Chip
                                             label={order.status || 'PENDING'}
@@ -120,6 +141,8 @@ function MyOrders() {
                                             size="small"
                                         />
                                     </TableCell>
+
+                                    {/* Paid response */}
                                     <TableCell align="center">
                                         {order.status !== 'PAID' ? (
                                             <Button

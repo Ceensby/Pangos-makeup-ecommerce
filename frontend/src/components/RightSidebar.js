@@ -9,7 +9,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useCart } from '../context/CartContext';
 import { formatTRY } from '../utils/formatPrice';
 
-const rightSidebarBg = '#e8f5e9'; // Light green background
+// Light green background
+const rightSidebarBg = '#e8f5e9';
 
 const RightSidebar = () => {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ const RightSidebar = () => {
 
     return (
         <Box sx={{ width: 300, bgcolor: rightSidebarBg, minHeight: '100vh', padding: 2, borderLeft: '1px solid #c8e6c9', display: 'flex', flexDirection: 'column' }}>
+
             {/* Welcome message */}
             <Typography variant="body2" color="text.secondary" align="center" fontSize="0.75rem" sx={{ mb: 2 }}>
                 Welcome to Pangos!

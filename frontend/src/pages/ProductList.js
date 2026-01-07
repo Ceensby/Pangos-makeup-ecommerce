@@ -7,13 +7,17 @@ import { formatTRY } from '../utils/formatPrice';
 import { useCart } from '../context/CartContext';
 import ProductQuickViewPanel from '../components/ProductQuickViewPanel';
 
-// Use relative path for proxy to work or full path if CORS enabled
+// Backend API base URL
 const API_URL = 'http://localhost:8080/api/products';
 
+
+
 const ProductList = () => {
+    // Product list state
     const [searchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    // Cart context
     const { add } = useCart();
 
     // Quick view panel state
@@ -21,10 +25,12 @@ const ProductList = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [panelLoading, setPanelLoading] = useState(false);
 
+    // Query parameters
     const mainCategory = searchParams.get('mainCategory');
     const subCategory = searchParams.get('subCategory');
     const searchQuery = searchParams.get('q');
 
+    // Fetch products when filters change
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
@@ -51,6 +57,7 @@ const ProductList = () => {
         fetchProducts();
     }, [mainCategory, subCategory, searchQuery]);
 
+    // Fetch single product details for view
     const fetchProductDetails = async (productId) => {
         setPanelLoading(true);
         try {
@@ -64,16 +71,18 @@ const ProductList = () => {
         }
     };
 
+    // Open quick view panel
     const handleProductClick = (product) => {
         setPanelOpen(true);
         fetchProductDetails(product.id);
     };
-
+    // Close quick view panel
     const handlePanelClose = () => {
         setPanelOpen(false);
         setSelectedProduct(null);
     };
 
+    // Page title based on category
     const title = subCategory
         ? `${mainCategory} - ${subCategory}`
         : (mainCategory || "New Arrivals");
@@ -91,6 +100,8 @@ const ProductList = () => {
                     {products.map((product) => (
                         <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
                             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+
+                                {/* Product image */}
                                 <CardMedia
                                     component="img"
                                     height="200"
@@ -99,6 +110,8 @@ const ProductList = () => {
                                     sx={{ objectFit: 'contain', p: 1 }}
                                 />
                                 <CardContent sx={{ flexGrow: 1 }}>
+
+                                    {/* Product info */}
                                     <Typography variant="h6" component="div" noWrap>
                                         {product.name}
                                     </Typography>

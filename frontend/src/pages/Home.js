@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import ProductCard from '../components/ProductCard';
 import { getAllProducts } from '../services/productService';
 
+ // UI: this page shows the product list
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

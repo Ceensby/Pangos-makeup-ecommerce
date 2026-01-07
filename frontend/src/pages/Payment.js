@@ -16,34 +16,44 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { formatTRY } from '../utils/formatPrice';
 import axios from 'axios';
 
+// Backend endpoints
 const ORDERS_API = 'http://localhost:8080/api/orders';
 const PAYMENTS_API = 'http://localhost:8080/api/payments';
 
 function Payment() {
+
+    // Navigation helper
     const navigate = useNavigate();
+
+    // Read query parameters from URL
     const [searchParams] = useSearchParams();
     const orderIdFromUrl = searchParams.get('orderId');
 
+    // Order state
     const [orderId, setOrderId] = useState(orderIdFromUrl || '');
     const [order, setOrder] = useState(null);
+
+    // UI states
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    // Form fields
+    // Payment Form fields
     const [cardholderName, setCardholderName] = useState('');
     const [cardNumber, setCardNumber] = useState('');
     const [expiry, setExpiry] = useState('');
     const [cvv, setCvv] = useState('');
     const [email, setEmail] = useState('');
 
+    // Auto fetch order when orderId exists in URL
     useEffect(() => {
         if (orderIdFromUrl) {
             fetchOrderDetails(orderIdFromUrl);
         }
     }, [orderIdFromUrl]);
 
+    // Fetch order details from backend
     const fetchOrderDetails = async (id) => {
         if (!id) return;
 
@@ -53,6 +63,7 @@ function Payment() {
             const response = await axios.get(`${ORDERS_API}/${id}`);
             const orderData = response.data;
 
+            // If already paid, block payment side
             if (orderData.status === 'PAID') {
                 setError('This order has already been paid.');
                 setOrder(orderData);
@@ -67,6 +78,7 @@ function Payment() {
         }
     };
 
+    // Manual fetch button handler
     const handleFetchOrder = () => {
         if (!orderId.trim()) {
             setError('Please enter an Order ID');
@@ -75,6 +87,7 @@ function Payment() {
         fetchOrderDetails(orderId.trim());
     };
 
+    // Basic client-side validation
     const validateForm = () => {
         if (!cardholderName.trim()) return 'Cardholder name is required';
         if (!cardNumber.trim() || cardNumber.length < 13) return 'Valid card number is required';
@@ -82,7 +95,7 @@ function Payment() {
         if (!cvv.trim() || cvv.length < 3) return 'Valid CVV is required';
         return null;
     };
-
+    // Submit payment to backend
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -101,6 +114,7 @@ function Payment() {
         setError('');
 
         try {
+            // Build request payload
             const paymentData = {
                 orderId: order.id,
                 amount: order.amount || 0,
@@ -113,6 +127,7 @@ function Payment() {
 
             await axios.post(PAYMENTS_API, paymentData);
 
+            // Showing success state and redirect
             setSuccess(true);
             setTimeout(() => {
                 navigate('/orders');
@@ -126,12 +141,15 @@ function Payment() {
         }
     };
 
+    // Format card number as "XXXX XXXX XXXX XXXX"
     const formatCardNumber = (value) => {
         const cleaned = value.replace(/\s/g, '');
         const formatted = cleaned.match(/.{1,4}/g)?.join(' ') || cleaned;
         return formatted;
     };
 
+
+    // Only allow digits and max length for card number
     const handleCardNumberChange = (e) => {
         const value = e.target.value.replace(/\s/g, '');
         if (/^\d*$/.test(value) && value.length <= 16) {
@@ -139,6 +157,7 @@ function Payment() {
         }
     };
 
+    // Auto add "/" after MM for expiry input
     const handleExpiryChange = (e) => {
         let value = e.target.value.replace(/\D/g, '');
         if (value.length >= 2) {
@@ -147,6 +166,7 @@ function Payment() {
         setExpiry(value);
     };
 
+    // Only allow digits and max length for CVV
     const handleCvvChange = (e) => {
         const value = e.target.value.replace(/\D/g, '');
         if (value.length <= 4) {
@@ -154,6 +174,7 @@ function Payment() {
         }
     };
 
+    // Success response UI
     if (success) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -167,14 +188,17 @@ function Payment() {
 
     return (
         <Box>
+            {/* Back navigation */}
             <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/orders')} sx={{ mb: 2 }}>
                 Back to Orders
             </Button>
 
+            {/* Page title */}
             <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                 Payment
             </Typography>
 
+            {/* Error message */}
             {error && (
                 <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
                     {error}
@@ -190,6 +214,7 @@ function Payment() {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
 
+                        {/* If no order loaded, ask for Order ID */}
                         {!order ? (
                             <Box>
                                 <TextField
@@ -212,6 +237,7 @@ function Payment() {
                                 </Button>
                             </Box>
                         ) : (
+                            // Showing order summary
                             <Box>
                                 <Typography variant="body1" sx={{ mb: 1 }}>
                                     <strong>Order ID:</strong> #{order.id}
@@ -236,6 +262,7 @@ function Payment() {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
 
+                        {/* Payment form */}
                         <form onSubmit={handleSubmit}>
                             <TextField
                                 label="Cardholder Name"

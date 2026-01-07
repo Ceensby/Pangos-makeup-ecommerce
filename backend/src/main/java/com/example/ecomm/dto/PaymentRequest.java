@@ -4,9 +4,9 @@ public class PaymentRequest {
     private Long orderId;
     private Double amount;
     private String cardholderName;
-    private String cardNumber; // Used for validation only, never stored
+    private String cardNumber;
     private String expiry;
-    private String cvv; // Used for validation only, never stored
+    private String cvv;
     private String email;
 
     public PaymentRequest() {

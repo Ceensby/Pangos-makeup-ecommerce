@@ -19,7 +19,7 @@ public class Product {
     private String subCategory;
 
     @Column(columnDefinition = "TEXT")
-    private String details;   // ⬅️ yeni alan
+    private String details;
 
     public Product() {}
 

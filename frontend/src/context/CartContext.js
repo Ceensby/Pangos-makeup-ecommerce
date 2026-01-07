@@ -1,5 +1,3 @@
-// CartContext.js - Shopping cart state management with add, remove, and clear operations
-
 import React, { createContext, useState, useContext } from "react";
 
 export const CartContext = createContext();
