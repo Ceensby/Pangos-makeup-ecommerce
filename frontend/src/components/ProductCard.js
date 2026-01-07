@@ -40,7 +40,6 @@ export default function ProductCard({ product }) {
                     {product.name}
                 </Typography>
 
-                {/* Debug ID (istersen sonra silebilirsin) */}
                 <Typography variant="caption" display="block" color="text.secondary">
                     ID: {product.id ?? "MISSING"}
                 </Typography>

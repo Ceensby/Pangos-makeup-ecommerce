@@ -36,7 +36,16 @@ function MyOrders() {
         setError('');
         try {
             const response = await axios.get(API_URL);
-            setOrders(response.data);
+            // UI-level filter: Hide orders created before 2026-01-07 03:00:00 Turkey time
+            const CUTOFF_TIMESTAMP = new Date('2026-01-07T03:00:00').getTime();
+
+            const filteredOrders = response.data.filter(order => {
+                if (!order.createdAt) return false; // Hide if no createdAt
+                const orderTimestamp = new Date(order.createdAt).getTime();
+                return orderTimestamp >= CUTOFF_TIMESTAMP;
+            });
+
+            setOrders(filteredOrders);
         } catch (err) {
             console.error('Error fetching orders:', err);
             setError('Failed to load orders. Please try again.');

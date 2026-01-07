@@ -1,3 +1,4 @@
+// App.js - Main application component with routing and layout structure
 
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
@@ -23,6 +24,7 @@ function App() {
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [prevItemCount, setPrevItemCount] = useState(0);
 
+    // Show notification when items are added to cart
     useEffect(() => {
         if (items.length > prevItemCount) {
             setOpenSnackbar(true);
@@ -30,7 +32,9 @@ function App() {
         setPrevItemCount(items.length);
     }, [items, prevItemCount]);
 
-    const handleCloseSnackbar = () => setOpenSnackbar(false);
+    const handleSnackbarClose = () => {
+        setOpenSnackbar(false);
+    };
 
     return (
         <ThemeProvider theme={theme}>
@@ -40,10 +44,10 @@ function App() {
                 <Header />
 
                 <Box sx={{ display: 'flex', flexGrow: 1 }}>
-                    {/* Left Sidebar */}
+                    {/* Left Sidebar - Category Navigation */}
                     <LeftSidebar />
 
-                    {/* Main Content Area */}
+                    {/* Main Content Area - Page Routes */}
                     <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: '#fff', overflowX: 'hidden' }}>
                         <Routes>
                             <Route path="/" element={<ProductList />} />
@@ -55,20 +59,24 @@ function App() {
                         </Routes>
                     </Box>
 
-                    {/* Right Sidebar */}
+                    {/* Right Sidebar - Cart Preview */}
                     <RightSidebar />
-
-                    <Snackbar open={openSnackbar} autoHideDuration={3000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-                        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-                            Item added to cart!
-                        </Alert>
-                    </Snackbar>
-
                 </Box>
             </Box>
+
+            {/* Cart notification snackbar */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity="success">
+                    Item added to cart!
+                </Alert>
+            </Snackbar>
         </ThemeProvider>
     );
 }
 
 export default App;
-

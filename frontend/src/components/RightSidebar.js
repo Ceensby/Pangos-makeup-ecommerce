@@ -1,3 +1,5 @@
+// RightSidebar.js - Cart preview sidebar with user section and quick cart actions
+
 import React from 'react';
 import { Box, Typography, Button, Divider, List, ListItem, ListItemText, IconButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -7,20 +9,28 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useCart } from '../context/CartContext';
 import { formatTRY } from '../utils/formatPrice';
 
-const rightSidebarBg = '#e8f5e9'; // Light greenish
+const rightSidebarBg = '#e8f5e9'; // Light green background
 
 const RightSidebar = () => {
     const navigate = useNavigate();
     const { items, remove } = useCart();
 
+    // Calculate total price of all cart items
     const cartTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     return (
         <Box sx={{ width: 300, bgcolor: rightSidebarBg, minHeight: '100vh', padding: 2, borderLeft: '1px solid #c8e6c9', display: 'flex', flexDirection: 'column' }}>
+            {/* Welcome message */}
+            <Typography variant="body2" color="text.secondary" align="center" fontSize="0.75rem" sx={{ mb: 2 }}>
+                Welcome to Pangos!
+            </Typography>
+
+            {/* User info (Guest mode) */}
             <Typography variant="h6" sx={{ color: '#2e7d32', mb: 2, textAlign: 'center', fontWeight: 'bold' }}>
                 Guest
             </Typography>
 
+            {/* My Orders button */}
             <Button
                 fullWidth
                 variant="outlined"
@@ -34,6 +44,7 @@ const RightSidebar = () => {
 
             <Divider sx={{ my: 2 }} />
 
+            {/* Cart section */}
             <Typography variant="h6" sx={{ color: '#2e7d32', mb: 1, fontWeight: 'bold' }}>
                 Cart ({items.length})
             </Typography>
@@ -42,6 +53,7 @@ const RightSidebar = () => {
                 <Typography variant="body2" color="text.secondary">Your cart is empty.</Typography>
             ) : (
                 <Box>
+                    {/* Cart items list */}
                     <List dense>
                         {items.map((item) => (
                             <ListItem key={item.id}
@@ -60,16 +72,18 @@ const RightSidebar = () => {
                         ))}
                     </List>
 
+                    {/* Cart total and navigation button */}
                     <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle1" fontWeight="bold" align="right" sx={{ mb: 1 }}>
                             Total: {formatTRY(cartTotal)}
                         </Typography>
+                        {/* Navigate to full cart page */}
                         <Button
                             fullWidth
                             variant="contained"
-                            color="secondary"
                             startIcon={<ShoppingCartIcon />}
                             onClick={() => navigate('/cart')}
+                            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
                         >
                             Go to Cart
                         </Button>
@@ -80,10 +94,6 @@ const RightSidebar = () => {
             <Box sx={{ flexGrow: 1 }} />
 
             <Divider sx={{ my: 2 }} />
-
-            <Typography variant="body2" color="text.secondary" align="center" fontSize="0.75rem">
-                Welcome to Pangos!
-            </Typography>
         </Box>
     );
 };

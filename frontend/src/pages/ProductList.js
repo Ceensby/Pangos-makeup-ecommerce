@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { Box, Typography, Grid, Card, CardMedia, CardContent, CardActions, Button, Chip } from '@mui/material';
+import { Box, Typography, Grid, Card, CardMedia, CardContent, CardActions, Button, Chip, IconButton } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 import { formatTRY } from '../utils/formatPrice';
 import { useCart } from '../context/CartContext';
+import ProductQuickViewPanel from '../components/ProductQuickViewPanel';
 
 // Use relative path for proxy to work or full path if CORS enabled
 const API_URL = 'http://localhost:8080/api/products';
@@ -13,6 +15,11 @@ const ProductList = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const { add } = useCart();
+
+    // Quick view panel state
+    const [panelOpen, setPanelOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [panelLoading, setPanelLoading] = useState(false);
 
     const mainCategory = searchParams.get('mainCategory');
     const subCategory = searchParams.get('subCategory');
@@ -44,6 +51,29 @@ const ProductList = () => {
         fetchProducts();
     }, [mainCategory, subCategory, searchQuery]);
 
+    const fetchProductDetails = async (productId) => {
+        setPanelLoading(true);
+        try {
+            const response = await axios.get(`${API_URL}/${productId}`);
+            setSelectedProduct(response.data);
+        } catch (error) {
+            console.error('Error fetching product details:', error);
+            setSelectedProduct(null);
+        } finally {
+            setPanelLoading(false);
+        }
+    };
+
+    const handleProductClick = (product) => {
+        setPanelOpen(true);
+        fetchProductDetails(product.id);
+    };
+
+    const handlePanelClose = () => {
+        setPanelOpen(false);
+        setSelectedProduct(null);
+    };
+
     const title = subCategory
         ? `${mainCategory} - ${subCategory}`
         : (mainCategory || "New Arrivals");
@@ -69,21 +99,32 @@ const ProductList = () => {
                                     sx={{ objectFit: 'contain', p: 1 }}
                                 />
                                 <CardContent sx={{ flexGrow: 1 }}>
-                                    <Typography gutterBottom variant="h6" component="div">
+                                    <Typography variant="h6" component="div" noWrap>
                                         {product.name}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        {product.price ? formatTRY(product.price) : 'Price on Request'}
+                                    <Typography variant="body2" color="text.secondary" noWrap>
+                                        {product.brand}
                                     </Typography>
-                                    {product.featured && (
-                                        <Chip label="Featured" color="secondary" size="small" sx={{ mt: 1 }} />
+                                    <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                        {formatTRY(product.price)}
+                                    </Typography>
+                                    {product.mainCategory && (
+                                        <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
                                     )}
                                 </CardContent>
-                                <CardActions>
+                                <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
+                                    <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => handleProductClick(product)}
+                                        title="View Details"
+                                    >
+                                        <InfoIcon />
+                                    </IconButton>
                                     <Button
                                         size="small"
                                         variant="contained"
-                                        fullWidth
+                                        color="secondary"
                                         onClick={() => {
                                             add(product);
                                         }}
@@ -99,6 +140,14 @@ const ProductList = () => {
                     )}
                 </Grid>
             )}
+
+            {/* Product Quick View Panel */}
+            <ProductQuickViewPanel
+                open={panelOpen}
+                onClose={handlePanelClose}
+                product={selectedProduct}
+                loading={panelLoading}
+            />
         </Box>
     );
 };

@@ -1,3 +1,5 @@
+// Header.js - Top navigation bar with logo, search functionality, and cart badge
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link as RouterLink } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
@@ -12,7 +14,9 @@ import InputBase from "@mui/material/InputBase";
 import Box from "@mui/material/Box";
 import { styled, alpha } from "@mui/material/styles";
 import { useCart } from "../context/CartContext";
+import pangosLogo from "../assets/pangos-logo.png";
 
+// Styled search input container
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
@@ -27,6 +31,7 @@ const Search = styled('div')(({ theme }) => ({
   maxWidth: '500px',
 }));
 
+// Search icon wrapper
 const SearchIconWrapper = styled('div')(({ theme }) => ({
   padding: theme.spacing(0, 2),
   height: '100%',
@@ -37,6 +42,7 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
+// Styled input field
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   width: '100%',
@@ -54,36 +60,39 @@ export default function Header() {
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
 
+  // Calculate total items in cart
   const totalCount = items.reduce(
     (sum, it) => sum + (it.quantity || 1),
     0
   );
 
-  // Sync with URL param
+  // Sync search input with URL query parameter
   useEffect(() => {
     const qParam = searchParams.get('q');
     setSearchValue(qParam || '');
   }, [searchParams]);
 
+  // Handle search button click or Enter key
   const handleSearch = () => {
     if (!searchValue.trim()) return;
 
-    // Preserve existing params, update/add 'q'
+    // Keep existing URL params, add or update 'q'
     const params = new URLSearchParams(searchParams);
     params.set('q', searchValue.trim());
     navigate(`/?${params.toString()}`);
   };
 
+  // Clear search input and remove 'q' param
   const handleClear = () => {
     setSearchValue('');
 
-    // Remove 'q' param but keep others
     const params = new URLSearchParams(searchParams);
     params.delete('q');
     const paramString = params.toString();
     navigate(paramString ? `/?${paramString}` : '/');
   };
 
+  // Trigger search on Enter key
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -93,15 +102,29 @@ export default function Header() {
   return (
     <AppBar position="sticky">
       <Toolbar>
-        <Typography
-          variant="h6"
+        {/* Logo - clickable to home */}
+        <Box
           component={RouterLink}
           to="/"
-          sx={{ flexGrow: 0, textDecoration: "none", color: "inherit", fontWeight: "bold" }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            mr: 2
+          }}
         >
-          PANGOS
-        </Typography>
+          <img
+            src={pangosLogo}
+            alt="Pangos Cosmetic Beauty"
+            style={{
+              height: '40px',
+              objectFit: 'contain',
+              borderRadius: '8px'
+            }}
+          />
+        </Box>
 
+        {/* Search bar */}
         <Search>
           <SearchIconWrapper>
             <SearchIcon />
@@ -113,6 +136,7 @@ export default function Header() {
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyPress={handleKeyPress}
           />
+          {/* Clear button (shows when there's text) */}
           {searchValue && (
             <IconButton
               size="small"
@@ -132,6 +156,7 @@ export default function Header() {
 
         <Box sx={{ flexGrow: 1 }} />
 
+        {/* Cart icon with item count badge */}
         <IconButton
           color="inherit"
           aria-label="cart"
