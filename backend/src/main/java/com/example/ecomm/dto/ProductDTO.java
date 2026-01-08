@@ -6,7 +6,7 @@ public class ProductDTO {
     private String description;
     private Double price;
     private String imageUrl;
-    private String details; // ⬅️ yeni alan
+    private String details;
 
     public ProductDTO() {}
 

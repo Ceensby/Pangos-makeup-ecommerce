@@ -1,5 +1,6 @@
 package com.example.ecomm.dto;
 
+// DTO class used to receive payment data from frontend
 public class PaymentRequest {
     private Long orderId;
     private Double amount;
@@ -9,6 +10,8 @@ public class PaymentRequest {
     private String cvv;
     private String email;
 
+
+    //Setter Methods
     public PaymentRequest() {
     }
 

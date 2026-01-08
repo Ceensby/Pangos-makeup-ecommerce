@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 @Table(name = "items_order") // 'order' is a reserved keyword in SQL
 public class Order {
     @Id
+
+    // // Auto-increment ID
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -18,9 +20,11 @@ public class Order {
     private Double amount; // Total order amount
     private LocalDateTime createdAt;
 
+
     public Order() {
     }
 
+    // Constructor used when creating a new order
     public Order(String customerName, String email, String address, String creditCard) {
         this.customerName = customerName;
         this.email = email;
@@ -29,6 +33,8 @@ public class Order {
         this.status = "RECEIVED";
         this.createdAt = LocalDateTime.now();
     }
+
+    //GettersAndSetters
 
     public Long getId() {
         return id;

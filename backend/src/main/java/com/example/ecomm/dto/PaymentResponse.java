@@ -2,6 +2,8 @@ package com.example.ecomm.dto;
 
 import java.time.LocalDateTime;
 
+// DTO class used to send payment result back to frontend
+
 public class PaymentResponse {
     private Long paymentId;
     private Long orderId;
@@ -12,6 +14,8 @@ public class PaymentResponse {
     public PaymentResponse() {
     }
 
+    // Constructor used to quickly create response object
+
     public PaymentResponse(Long paymentId, Long orderId, String status, Double amount, LocalDateTime paidAt) {
         this.paymentId = paymentId;
         this.orderId = orderId;
@@ -19,6 +23,8 @@ public class PaymentResponse {
         this.amount = amount;
         this.paidAt = paidAt;
     }
+
+    //Getter Methods
 
     public Long getPaymentId() {
         return paymentId;

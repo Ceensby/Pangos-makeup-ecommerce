@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+
+// Table name in database
 @Table(name = "payments")
+
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +33,7 @@ public class Payment {
     public Payment() {
     }
 
+    // Constructor used when creating a payment
     public Payment(Long orderId, Double amount, String cardholderName, String last4) {
         this.orderId = orderId;
         this.amount = amount;

@@ -5,6 +5,8 @@ import com.example.ecomm.repository.OrderRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+
+// Base URL for all order-related endpoints
 @RequestMapping("/api/orders")
 public class OrderController {
 
@@ -14,6 +16,7 @@ public class OrderController {
         this.orderRepository = orderRepository;
     }
 
+    // Creates a new order
     @PostMapping
     public Order createOrder(@RequestBody Order order) {
         order.setStatus("PENDING");
@@ -21,13 +24,17 @@ public class OrderController {
         return orderRepository.save(order);
     }
 
+    // Returns all orders
     @GetMapping
     public java.util.List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
 
+    // Returns a single order by ID
     @GetMapping("/{id}")
     public Order getOrderById(@PathVariable Long id) {
+
+        // Find order by ID or throw error if not found
         return orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
     }

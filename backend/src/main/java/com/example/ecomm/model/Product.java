@@ -3,7 +3,12 @@ package com.example.ecomm.model;
 import jakarta.persistence.*;
 
 @Entity
+
+// Database table name
 @Table(name = "products")
+
+
+
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,6 +26,8 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String details;
 
+
+    // Constructor used to create a new product
     public Product() {}
 
     public Product(String name, String description, Double price,

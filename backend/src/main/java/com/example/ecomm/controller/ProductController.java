@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+
+// Base URL for product-related endpoints
 @RequestMapping("/api/products")
 public class ProductController {
 
@@ -18,11 +20,13 @@ public class ProductController {
         this.repository = repository;
     }
 
+    // No random: list all featured products, newest first
     @GetMapping("/top")
     public List<ProductDTO> getTopFeatured() {
-        // No random: list all featured products, newest first
+
         List<Product> products = repository.findByFeaturedTrueOrderByIdDesc();
 
+        // Convert Product entities to ProductDTO
         return products.stream()
                 .map(p -> new ProductDTO(
                         p.getId(),
@@ -34,6 +38,7 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
+    // Returns products with optional filters
     @GetMapping
     public List<ProductDTO> getAll(
             @RequestParam(required = false) String mainCategory,
@@ -42,6 +47,7 @@ public class ProductController {
 
         List<Product> products;
 
+        //Filters
         if (q != null && !q.isEmpty()) {
             products = repository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(q, q);
         } else if (mainCategory != null && subCategory != null) {
@@ -54,6 +60,7 @@ public class ProductController {
             products = repository.findAll();
         }
 
+        // No filters → return all products
         return products.stream()
                 .map(p -> new ProductDTO(
                         p.getId(),
@@ -65,6 +72,7 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
+    // Convert Product entities to ProductDTO
     @GetMapping("/{id}")
     public ProductDTO getOne(@PathVariable Long id) {
         Product p = repository.findById(id).orElseThrow();
