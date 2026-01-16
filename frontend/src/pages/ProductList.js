@@ -6,6 +6,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import { formatTRY } from '../utils/formatPrice';
 import { useCart } from '../context/CartContext';
 import ProductQuickViewPanel from '../components/ProductQuickViewPanel';
+import AnnouncementBar from '../components/AnnouncementBar';
 
 // Backend API base URL
 const API_URL = 'http://localhost:8080/api/products';
@@ -89,6 +90,9 @@ const ProductList = () => {
 
     return (
         <Box>
+            {/* Promotional announcement bar - center content only */}
+            <AnnouncementBar />
+
             <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                 {title}
             </Typography>
