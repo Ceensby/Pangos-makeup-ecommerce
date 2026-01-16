@@ -26,6 +26,9 @@ const ProductList = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [panelLoading, setPanelLoading] = useState(false);
 
+    // Product display limit state (show 16 initially)
+    const [showAll, setShowAll] = useState(false);
+
     // Query parameters
     const mainCategory = searchParams.get('mainCategory');
     const subCategory = searchParams.get('subCategory');
@@ -97,65 +100,95 @@ const ProductList = () => {
                 {title}
             </Typography>
 
+
             {loading ? (
                 <Typography>Loading...</Typography>
             ) : (
-                <Grid container spacing={2}>
-                    {products.map((product) => (
-                        <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
-                            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <>
+                    <Grid container spacing={2}>
+                        {/* Display limited products or all based on showAll state */}
+                        {(showAll ? products : products.slice(0, 16)).map((product) => (
+                            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+                                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
 
-                                {/* Product image */}
-                                <CardMedia
-                                    component="img"
-                                    height="200"
-                                    image={product.imageUrl || 'https://via.placeholder.com/200?text=No+Image'}
-                                    alt={product.name}
-                                    sx={{ objectFit: 'contain', p: 1 }}
-                                />
-                                <CardContent sx={{ flexGrow: 1 }}>
+                                    {/* Product image */}
+                                    <CardMedia
+                                        component="img"
+                                        height="200"
+                                        image={product.imageUrl || 'https://via.placeholder.com/200?text=No+Image'}
+                                        alt={product.name}
+                                        sx={{ objectFit: 'contain', p: 1 }}
+                                    />
+                                    <CardContent sx={{ flexGrow: 1 }}>
 
-                                    {/* Product info */}
-                                    <Typography variant="h6" component="div" noWrap>
-                                        {product.name}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" noWrap>
-                                        {product.brand}
-                                    </Typography>
-                                    <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
-                                        {formatTRY(product.price)}
-                                    </Typography>
-                                    {product.mainCategory && (
-                                        <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
-                                    )}
-                                </CardContent>
-                                <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-                                    <IconButton
-                                        size="small"
-                                        color="primary"
-                                        onClick={() => handleProductClick(product)}
-                                        title="View Details"
-                                    >
-                                        <InfoIcon />
-                                    </IconButton>
-                                    <Button
-                                        size="small"
-                                        variant="contained"
-                                        color="secondary"
-                                        onClick={() => {
-                                            add(product);
-                                        }}
-                                    >
-                                        Add to Cart
-                                    </Button>
-                                </CardActions>
-                            </Card>
-                        </Grid>
-                    ))}
-                    {products.length === 0 && (
-                        <Typography sx={{ mt: 2 }}>No products found in this category.</Typography>
+                                        {/* Product info */}
+                                        <Typography variant="h6" component="div" noWrap>
+                                            {product.name}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" noWrap>
+                                            {product.brand}
+                                        </Typography>
+                                        <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                            {formatTRY(product.price)}
+                                        </Typography>
+                                        {product.mainCategory && (
+                                            <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
+                                        )}
+                                    </CardContent>
+                                    <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
+                                        <IconButton
+                                            size="small"
+                                            color="primary"
+                                            onClick={() => handleProductClick(product)}
+                                            title="View Details"
+                                        >
+                                            <InfoIcon />
+                                        </IconButton>
+                                        <Button
+                                            size="small"
+                                            variant="contained"
+                                            color="secondary"
+                                            onClick={() => {
+                                                add(product);
+                                            }}
+                                        >
+                                            Add to Cart
+                                        </Button>
+                                    </CardActions>
+                                </Card>
+                            </Grid>
+                        ))}
+                        {products.length === 0 && (
+                            <Typography sx={{ mt: 2 }}>No products found in this category.</Typography>
+                        )}
+                    </Grid>
+
+                    {/* See More / Show Less Button */}
+                    {products.length > 16 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                            <Button
+                                variant="outlined"
+                                size="large"
+                                onClick={() => setShowAll(!showAll)}
+                                sx={{
+                                    borderRadius: '24px',
+                                    px: 4,
+                                    py: 1.5,
+                                    fontSize: '1rem',
+                                    fontWeight: 500,
+                                    textTransform: 'none',
+                                    borderWidth: '2px',
+                                    '&:hover': {
+                                        borderWidth: '2px',
+                                        backgroundColor: 'rgba(233, 30, 99, 0.04)'
+                                    }
+                                }}
+                            >
+                                {showAll ? 'Show Less' : 'See More Products'}
+                            </Button>
+                        </Box>
                     )}
-                </Grid>
+                </>
             )}
 
             {/* Product Quick View Panel */}
