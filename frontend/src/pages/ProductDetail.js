@@ -56,7 +56,89 @@ export default function ProductDetail() {
   }, [id]);
 
 
-// Add product to cart
+  // Format attribute names (weight_g → Weight)
+  const formatAttributeName = (key) => {
+    return key
+      .replace(/_[a-z]+$/i, '') // Remove unit suffixes like _g, _ml
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  // Clean attribute values (remove leading/trailing slashes)
+  const cleanAttributeValue = (value) => {
+    if (typeof value === 'string') {
+      return value.replace(/^\/+|\/+$/g, '').trim();
+    }
+    return String(value);
+  };
+
+  // Parse and render details object
+  const renderDetails = () => {
+    if (!product.details) return null;
+
+    let detailsObj = product.details;
+
+    // Parse if it's a JSON string
+    if (typeof product.details === 'string') {
+      try {
+        detailsObj = JSON.parse(product.details);
+      } catch {
+        return <Typography variant="body2">{product.details}</Typography>;
+      }
+    }
+
+    // Render as formatted attributes with LABELS as pills, VALUES as text
+    if (typeof detailsObj === 'object' && !Array.isArray(detailsObj)) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          {Object.entries(detailsObj).map(([key, value]) => (
+            <Box
+              key={key}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2
+              }}
+            >
+              {/* Label as green pill */}
+              <Box
+                sx={{
+                  bgcolor: '#c8e6c9', // Soft green
+                  color: '#2e7d32', // Dark green text
+                  px: 2,
+                  py: 0.5,
+                  borderRadius: '16px',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  display: 'inline-block',
+                  minWidth: '100px',
+                  textAlign: 'center'
+                }}
+              >
+                {formatAttributeName(key)}
+              </Box>
+              {/* Value as normal text */}
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 500,
+                  color: 'text.primary'
+                }}
+              >
+                {cleanAttributeValue(value)}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      );
+    }
+
+    return <Typography variant="body2">{String(detailsObj)}</Typography>;
+  };
+
+  // Add product to cart
   const handleAddToCart = () => {
     if (!product) return;
     console.log("ProductDetail: Add to cart clicked", product);
@@ -109,30 +191,18 @@ export default function ProductDetail() {
 
         {/* Right: Info */}
         <Grid item xs={12} md={6}>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
+          {/* 1) Product Name */}
+          <Typography variant="h4" fontWeight="bold" sx={{ mb: 4 }}>
             {product.name}
           </Typography>
 
-          <Typography variant="h5" color="secondary.main" fontWeight="bold" gutterBottom>
+          {/* 2) Price */}
+          <Typography variant="h5" color="secondary.main" fontWeight="bold" sx={{ mb: 5 }}>
             {formatTRY(product.price)}
           </Typography>
 
-          {product.description && (
-            <Typography variant="body1" paragraph sx={{ mt: 2 }}>
-              {product.description}
-            </Typography>
-          )}
-
-          <Divider sx={{ my: 2 }} />
-
-          {product.details && (
-            <Box sx={{ bgcolor: '#fff0f5', p: 2, borderRadius: 2, mb: 3 }}>
-              <Typography variant="subtitle2" fontWeight="bold">Details:</Typography>
-              <Typography variant="body2">{product.details}</Typography>
-            </Box>
-          )}
-
-          <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
+          {/* 3) Add to Cart section */}
+          <Box sx={{ mt: 6, mb: 6, display: "flex", gap: 2 }}>
             <Button
               variant="contained"
               size="large"
@@ -143,13 +213,57 @@ export default function ProductDetail() {
               Add to Cart
             </Button>
             <Button
-              variant="outlined"
+              variant="contained"
               size="large"
               onClick={() => navigate('/')}
+              sx={{
+                bgcolor: '#4caf50',
+                color: 'white',
+                '&:hover': {
+                  bgcolor: '#45a049'
+                }
+              }}
             >
               Back to Shopping
             </Button>
           </Box>
+
+          {/* 4-5) Product Attributes title + attributes list */}
+          {product.details && (
+            <Box sx={{ mt: 6, mb: 2 }}>
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ color: '#e91e63', mb: 2 }} // Neon pink
+              >
+                Product Attributes
+              </Typography>
+              {renderDetails()}
+            </Box>
+          )}
+
+          {/* 6-7) Description heading (green) + description text */}
+          {product.description && (
+            <Box sx={{ mt: 3 }}>
+              <Typography
+                variant="h6"
+                fontWeight="bold"
+                sx={{ color: '#4caf50', mb: 2 }} // Main green accent
+              >
+                Description
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  lineHeight: 1.8,
+                  color: 'text.primary',
+                  whiteSpace: 'pre-line'
+                }}
+              >
+                {product.description}
+              </Typography>
+            </Box>
+          )}
         </Grid>
       </Grid>
     </Container>

@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Box, Typography, Grid, Card, CardMedia, CardContent, CardActions, Button, Chip, IconButton } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
+import { Box, Typography, Grid, Card, CardMedia, CardContent, CardActions, Button, Chip } from '@mui/material';
 import { formatTRY } from '../utils/formatPrice';
 import { useCart } from '../context/CartContext';
-import ProductQuickViewPanel from '../components/ProductQuickViewPanel';
 import AnnouncementBar from '../components/AnnouncementBar';
 
 // Backend API base URL
@@ -18,13 +16,9 @@ const ProductList = () => {
     const [searchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
     // Cart context
     const { add } = useCart();
-
-    // Quick view panel state
-    const [panelOpen, setPanelOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [panelLoading, setPanelLoading] = useState(false);
 
     // Product display limit state (show 16 initially)
     const [showAll, setShowAll] = useState(false);
@@ -61,29 +55,9 @@ const ProductList = () => {
         fetchProducts();
     }, [mainCategory, subCategory, searchQuery]);
 
-    // Fetch single product details for view
-    const fetchProductDetails = async (productId) => {
-        setPanelLoading(true);
-        try {
-            const response = await axios.get(`${API_URL}/${productId}`);
-            setSelectedProduct(response.data);
-        } catch (error) {
-            console.error('Error fetching product details:', error);
-            setSelectedProduct(null);
-        } finally {
-            setPanelLoading(false);
-        }
-    };
-
-    // Open quick view panel
-    const handleProductClick = (product) => {
-        setPanelOpen(true);
-        fetchProductDetails(product.id);
-    };
-    // Close quick view panel
-    const handlePanelClose = () => {
-        setPanelOpen(false);
-        setSelectedProduct(null);
+    // Navigate to product detail page
+    const handleProductClick = (productId) => {
+        navigate(`/products/${productId}`);
     };
 
     // Page title based on category
@@ -109,7 +83,20 @@ const ProductList = () => {
                         {/* Display limited products or all based on showAll state */}
                         {(showAll ? products : products.slice(0, 16)).map((product) => (
                             <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
-                                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                <Card
+                                    sx={{
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            boxShadow: 4,
+                                            transform: 'translateY(-4px)',
+                                            transition: 'all 0.3s ease'
+                                        }
+                                    }}
+                                    onClick={() => handleProductClick(product.id)}
+                                >
 
                                     {/* Product image */}
                                     <CardMedia
@@ -135,20 +122,13 @@ const ProductList = () => {
                                             <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
                                         )}
                                     </CardContent>
-                                    <CardActions sx={{ justifyContent: 'space-between', px: 2 }}>
-                                        <IconButton
-                                            size="small"
-                                            color="primary"
-                                            onClick={() => handleProductClick(product)}
-                                            title="View Details"
-                                        >
-                                            <InfoIcon />
-                                        </IconButton>
+                                    <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
                                         <Button
                                             size="small"
                                             variant="contained"
                                             color="secondary"
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent card click when clicking Add to Cart
                                                 add(product);
                                             }}
                                         >
@@ -190,14 +170,6 @@ const ProductList = () => {
                     )}
                 </>
             )}
-
-            {/* Product Quick View Panel */}
-            <ProductQuickViewPanel
-                open={panelOpen}
-                onClose={handlePanelClose}
-                product={selectedProduct}
-                loading={panelLoading}
-            />
         </Box>
     );
 };
