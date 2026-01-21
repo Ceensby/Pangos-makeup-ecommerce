@@ -3,7 +3,9 @@ package com.example.ecomm.repository;
 import com.example.ecomm.model.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
+    List<Order> findByUser(com.example.ecomm.model.User user);
 }

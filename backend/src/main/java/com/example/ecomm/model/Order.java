@@ -2,6 +2,7 @@ package com.example.ecomm.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "items_order") // 'order' is a reserved keyword in SQL
@@ -12,29 +13,59 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // New fields for user-scoped orders
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
+
     private String customerName;
+    private String phoneNumber;
+
+    // Detailed address fields
+    private String addressLine;
+    private String city;
+    private String postalCode;
+
+    // Old fields (kept for backward compatibility)
+    @Deprecated
     private String email;
+    @Deprecated
     private String address;
-    private String creditCard; // Simplified for demo
+    // creditCard removed for security - payment details only in Payment table
+
     private String status;
     private Double amount; // Total order amount
     private LocalDateTime createdAt;
 
-
     public Order() {
     }
 
-    // Constructor used when creating a new order
+    // New constructor with user relationship
+    public Order(User user, String customerName, String phoneNumber,
+            String addressLine, String city, String postalCode, Double amount) {
+        this.user = user;
+        this.customerName = customerName;
+        this.phoneNumber = phoneNumber;
+        this.addressLine = addressLine;
+        this.city = city;
+        this.postalCode = postalCode;
+        this.amount = amount;
+        this.status = "PENDING";
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Old constructor (deprecated, kept for backward compatibility)
+    @Deprecated
     public Order(String customerName, String email, String address, String creditCard) {
         this.customerName = customerName;
         this.email = email;
         this.address = address;
-        this.creditCard = creditCard;
         this.status = "RECEIVED";
         this.createdAt = LocalDateTime.now();
     }
 
-    //GettersAndSetters
+    // GettersAndSetters
 
     public Long getId() {
         return id;
@@ -66,14 +97,6 @@ public class Order {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getCreditCard() {
-        return creditCard;
-    }
-
-    public void setCreditCard(String cc) {
-        this.creditCard = cc;
     }
 
     public String getStatus() {

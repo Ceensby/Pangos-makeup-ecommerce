@@ -1,12 +1,17 @@
 // RightSidebar.js - Cart preview sidebar with user section and quick cart actions
 
 import React from 'react';
-import { Box, Typography, Button, Divider, List, ListItem, ListItemText, IconButton } from '@mui/material';
+import { Box, Typography, Button, Divider, List, ListItem, ListItemText, IconButton, ListItemButton } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PersonIcon from '@mui/icons-material/Person';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import LogoutIcon from '@mui/icons-material/Logout';
+import LoginIcon from '@mui/icons-material/Login';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { formatTRY } from '../utils/formatPrice';
 
 // Light green background
@@ -15,9 +20,15 @@ const rightSidebarBg = '#e8f5e9';
 const RightSidebar = () => {
     const navigate = useNavigate();
     const { items, remove } = useCart();
+    const { isAuthenticated, user, logout } = useAuth();
 
     // Calculate total price of all cart items
     const cartTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     return (
         <Box sx={{ width: 300, bgcolor: rightSidebarBg, minHeight: '100vh', padding: 2, borderLeft: '1px solid #c8e6c9', display: 'flex', flexDirection: 'column' }}>
@@ -27,10 +38,57 @@ const RightSidebar = () => {
                 Welcome to Pangos!
             </Typography>
 
-            {/* User info (Guest mode) */}
+            {/* User info */}
             <Typography variant="h6" sx={{ color: '#2e7d32', mb: 2, textAlign: 'center', fontWeight: 'bold' }}>
-                Guest
+                {isAuthenticated ? user?.username || 'User' : 'Guest'}
             </Typography>
+
+            {/* Account Section */}
+            <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ color: '#2e7d32', mb: 1, fontWeight: 'bold' }}>
+                    Account
+                </Typography>
+
+                {/* Not logged in - Show Sign In/Sign Up */}
+                {!isAuthenticated ? (
+                    <Box display="flex" flexDirection="column" gap={1}>
+                        <Button
+                            fullWidth
+                            variant="contained"
+                            size="small"
+                            startIcon={<LoginIcon />}
+                            onClick={() => navigate('/login')}
+                            sx={{ bgcolor: 'primary.main' }}
+                        >
+                            Sign In
+                        </Button>
+                        <Button
+                            fullWidth
+                            variant="outlined"
+                            size="small"
+                            onClick={() => navigate('/signup')}
+                        >
+                            Sign Up
+                        </Button>
+                    </Box>
+                ) : (
+                    /* Logged in - Show Profile/Addresses/Logout */
+                    <List dense disablePadding>
+                        <ListItemButton onClick={() => navigate('/profile')}>
+                            <PersonIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
+                            <ListItemText primary="Profile" primaryTypographyProps={{ variant: 'body2' }} />
+                        </ListItemButton>
+                        <ListItemButton onClick={() => navigate('/addresses')}>
+                            <LocationOnIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
+                            <ListItemText primary="Manage Addresses" primaryTypographyProps={{ variant: 'body2' }} />
+                        </ListItemButton>
+                        <ListItemButton onClick={handleLogout}>
+                            <LogoutIcon fontSize="small" sx={{ mr: 1, color: 'error.main' }} />
+                            <ListItemText primary="Log Out" primaryTypographyProps={{ variant: 'body2', color: 'error.main' }} />
+                        </ListItemButton>
+                    </List>
+                )}
+            </Box>
 
             {/* My Orders button */}
             <Button

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 // Base URL for product-related endpoints
 @RequestMapping("/api/products")
+@CrossOrigin(origins = "*") // Allow frontend to access this API
 public class ProductController {
 
     private final ProductRepository repository;
@@ -47,7 +48,7 @@ public class ProductController {
 
         List<Product> products;
 
-        //Filters
+        // Filters
         if (q != null && !q.isEmpty()) {
             products = repository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(q, q);
         } else if (mainCategory != null && subCategory != null) {
