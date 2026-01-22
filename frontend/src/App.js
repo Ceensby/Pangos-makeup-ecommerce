@@ -21,6 +21,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Addresses from './pages/Addresses';
+import CreditCards from './pages/CreditCards';
 import { useCart } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 
@@ -66,6 +67,7 @@ function App() {
                                 <Route path="/signup" element={<Signup />} />
                                 <Route path="/profile" element={<Profile />} />
                                 <Route path="/addresses" element={<Addresses />} />
+                                <Route path="/credit-cards" element={<CreditCards />} />
                             </Routes>
                         </Box>
 

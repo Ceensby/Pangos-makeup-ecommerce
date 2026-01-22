@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, Paper, TextField, Stepper, Step, StepLabel, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, Paper, TextField, Stepper, Step, StepLabel, Alert, Card, CardContent, Radio, Chip, CircularProgress } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatTRY } from '../utils/formatPrice';
+import { Home, CreditCard as CreditCardIcon } from '@mui/icons-material';
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { items, clear } = useCart();
   const { isAuthenticated } = useAuth();
 
@@ -15,6 +17,16 @@ const Checkout = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [orderId, setOrderId] = useState(null);
   const [error, setError] = useState('');
+
+  // Address state
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
+
+  // Saved card state
+  const [savedCards, setSavedCards] = useState([]);
+  const [selectedCardId, setSelectedCardId] = useState(null);
+  const [loadingSavedCards, setLoadingSavedCards] = useState(true);
 
   // Form data for all steps
   const [formData, setFormData] = useState({
@@ -36,6 +48,56 @@ const Checkout = () => {
   // Calculate total amount from cart items
   const cartTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+  // Fetch saved addresses on mount and when returning from /addresses
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAddresses();
+      fetchSavedCards();
+    }
+  }, [isAuthenticated, location]);
+
+  const fetchAddresses = async () => {
+    setLoadingAddresses(true);
+    setError('');
+    try {
+      const response = await axios.get('http://localhost:8080/api/addresses/me');
+      setAddresses(response.data);
+
+      // Auto-select default address if available
+      if (response.data.length > 0 && !selectedAddressId) {
+        const defaultAddr = response.data.find(addr => addr.isDefault);
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch addresses', err);
+      setError('Failed to load addresses');
+    } finally {
+      setLoadingAddresses(false);
+    }
+  };
+
+  const fetchSavedCards = async () => {
+    setLoadingSavedCards(true);
+    try {
+      const response = await axios.get('http://localhost:8080/api/saved-cards/me');
+      setSavedCards(response.data);
+
+      // Auto-select default card if available
+      if (response.data.length > 0 && !selectedCardId) {
+        const defaultCard = response.data.find(card => card.isDefault);
+        if (defaultCard) {
+          setSelectedCardId(defaultCard.id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch saved cards', err);
+    } finally {
+      setLoadingSavedCards(false);
+    }
+  };
+
   // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,30 +109,37 @@ const Checkout = () => {
     setError('');
 
     if (activeStep === 1) {
-      // Validate address information
-      if (!formData.customerName || !formData.phoneNumber || !formData.addressLine ||
-        !formData.city || !formData.postalCode) {
-        setError('Please fill in all address fields');
+      // Validate address selection
+      if (!selectedAddressId) {
+        setError('Please select a delivery address');
         return false;
       }
     }
 
     if (activeStep === 2) {
-      // Validate payment information
-      if (!formData.cardholderName || !formData.cardNumber || !formData.expiryDate || !formData.cvv) {
-        setError('Please fill in all payment fields');
+      // Validate payment - check if card is selected
+      if (!selectedCardId && !formData.cardholderName) {
+        setError('Please select a payment method or enter card details');
         return false;
       }
-      // Basic card number validation (remove spaces, check length)
-      const cardNum = formData.cardNumber.replace(/\s/g, '');
-      if (cardNum.length < 13 || cardNum.length > 19) {
-        setError('Please enter a valid card number');
-        return false;
-      }
-      // CVV validation
-      if (formData.cvv.length < 3 || formData.cvv.length > 4) {
-        setError('Please enter a valid CVV');
-        return false;
+
+      // If using manual entry, validate fields
+      if (!selectedCardId) {
+        if (!formData.cardholderName || !formData.cardNumber || !formData.expiryDate || !formData.cvv) {
+          setError('Please fill in all payment fields');
+          return false;
+        }
+        // Basic card number validation (remove spaces, check length)
+        const cardNum = formData.cardNumber.replace(/\s/g, '');
+        if (cardNum.length < 13 || cardNum.length > 19) {
+          setError('Please enter a valid card number');
+          return false;
+        }
+        // CVV validation
+        if (formData.cvv.length < 3 || formData.cvv.length > 4) {
+          setError('Please enter a valid CVV');
+          return false;
+        }
       }
     }
 
@@ -100,8 +169,47 @@ const Checkout = () => {
   // Submit order to backend
   const handleOrderSubmit = async () => {
     try {
+      // Get selected address data
+      const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
+      if (!selectedAddress) {
+        setError('Selected address not found');
+        return;
+      }
+
+      // Get payment data - either from saved card or manual entry
+      let paymentData;
+      if (selectedCardId) {
+        // Using saved card
+        const selectedCard = savedCards.find(card => card.id === selectedCardId);
+        if (!selectedCard) {
+          setError('Selected card not found');
+          return;
+        }
+        paymentData = {
+          cardholderName: selectedCard.cardholderName,
+          cardNumber: `************${selectedCard.last4}`, // Placeholder
+          expiryDate: `${selectedCard.expiryMonth}/${selectedCard.expiryYear}`,
+          cvv: '***' // Placeholder
+        };
+      } else {
+        // Using manual entry
+        paymentData = {
+          cardholderName: formData.cardholderName,
+          cardNumber: formData.cardNumber,
+          expiryDate: formData.expiryDate,
+          cvv: formData.cvv
+        };
+      }
+
+      // Build checkout data with selected address details
       const checkoutData = {
-        ...formData,
+        customerName: selectedAddress.fullName,
+        phoneNumber: selectedAddress.phoneNumber,
+        addressLine: selectedAddress.addressLine,
+        city: selectedAddress.city,
+        postalCode: selectedAddress.postalCode,
+        // Payment info
+        ...paymentData,
         amount: cartTotal
       };
 
@@ -201,134 +309,227 @@ const Checkout = () => {
     </Paper>
   );
 
-  // Step 2: Address Information
-  const renderAddressForm = () => (
-    <Paper elevation={2} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
-        Delivery Address
-      </Typography>
+  // Step 2: Address Selection
+  const renderAddressSelection = () => {
+    if (loadingAddresses) {
+      return (
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+            <CircularProgress />
+          </Box>
+        </Paper>
+      );
+    }
 
-      <Box component="form" sx={{ mt: 2 }}>
-        <TextField
-          fullWidth
-          label="Full Name"
-          name="customerName"
-          value={formData.customerName}
-          onChange={handleChange}
-          margin="normal"
-          required
-        />
-        <TextField
-          fullWidth
-          label="Phone Number"
-          name="phoneNumber"
-          value={formData.phoneNumber}
-          onChange={handleChange}
-          margin="normal"
-          required
-        />
-        <TextField
-          fullWidth
-          label="Address Line"
-          name="addressLine"
-          value={formData.addressLine}
-          onChange={handleChange}
-          margin="normal"
-          required
-          multiline
-          rows={2}
-        />
-        <Box display="flex" gap={2}>
-          <TextField
-            fullWidth
-            label="City"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-            margin="normal"
-            required
-          />
-          <TextField
-            fullWidth
-            label="Postal Code"
-            name="postalCode"
-            value={formData.postalCode}
-            onChange={handleChange}
-            margin="normal"
-            required
-          />
-        </Box>
-      </Box>
-    </Paper>
-  );
+    if (addresses.length === 0) {
+      return (
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
+            Delivery Address
+          </Typography>
+          <Box textAlign="center" py={4}>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              No saved addresses found.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Please add a delivery address to continue with checkout.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/addresses', { state: { from: '/checkout' } })}
+            >
+              Go to Manage Addresses
+            </Button>
+          </Box>
+        </Paper>
+      );
+    }
 
-  // Step 3: Payment Information
-  const renderPaymentForm = () => (
-    <Paper elevation={2} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
-        Payment Details
-      </Typography>
-
-      <Alert severity="info" sx={{ mb: 2 }}>
-        This is a demo. Use test card: 4242 4242 4242 4242
-      </Alert>
-
-      <Box component="form" sx={{ mt: 2 }}>
-        <TextField
-          fullWidth
-          label="Cardholder Name"
-          name="cardholderName"
-          value={formData.cardholderName}
-          onChange={handleChange}
-          margin="normal"
-          required
-        />
-        <TextField
-          fullWidth
-          label="Card Number"
-          name="cardNumber"
-          value={formData.cardNumber}
-          onChange={handleChange}
-          margin="normal"
-          required
-          placeholder="1234 5678 9012 3456"
-        />
-        <Box display="flex" gap={2}>
-          <TextField
-            fullWidth
-            label="Expiry Date (MM/YY)"
-            name="expiryDate"
-            value={formData.expiryDate}
-            onChange={handleChange}
-            margin="normal"
-            required
-            placeholder="12/25"
-          />
-          <TextField
-            fullWidth
-            label="CVV"
-            name="cvv"
-            value={formData.cvv}
-            onChange={handleChange}
-            margin="normal"
-            required
-            placeholder="123"
-            inputProps={{ maxLength: 4 }}
-          />
-        </Box>
-      </Box>
-
-      {/* Order summary in payment step */}
-      <Box mt={3} p={2} bgcolor="#f9f9f9" borderRadius={1}>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Order Total
+    return (
+      <Paper elevation={2} sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
+          Select Delivery Address
         </Typography>
-        <Typography variant="h5" fontWeight="bold" color="primary.main">
-          {formatTRY(cartTotal)}
+
+        <Box sx={{ mt: 2 }}>
+          {addresses.map((address) => (
+            <Card
+              key={address.id}
+              sx={{
+                mb: 2,
+                cursor: 'pointer',
+                border: selectedAddressId === address.id ? '2px solid' : '1px solid',
+                borderColor: selectedAddressId === address.id ? 'primary.main' : 'divider',
+                bgcolor: selectedAddressId === address.id ? 'action.selected' : 'background.paper',
+                '&:hover': {
+                  bgcolor: 'action.hover'
+                }
+              }}
+              onClick={() => setSelectedAddressId(address.id)}
+            >
+              <CardContent sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                <Radio
+                  checked={selectedAddressId === address.id}
+                  onChange={() => setSelectedAddressId(address.id)}
+                  sx={{ mt: -0.5 }}
+                />
+                <Box sx={{ flex: 1, ml: 1 }}>
+                  {address.isDefault && (
+                    <Chip
+                      label="Default"
+                      color="primary"
+                      size="small"
+                      icon={<Home />}
+                      sx={{ mb: 1 }}
+                    />
+                  )}
+                  <Typography variant="subtitle1" fontWeight="medium">
+                    {address.fullName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {address.phoneNumber}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    {address.addressLine}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {address.city}, {address.postalCode}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/addresses', { state: { from: '/checkout' } })}
+            >
+              Add New Address
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
+    );
+  };
+
+  // Step 3: Payment Selection
+  const renderPaymentSelection = () => {
+    if (loadingSavedCards) {
+      return (
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+            <CircularProgress />
+          </Box>
+        </Paper>
+      );
+    }
+
+    if (savedCards.length === 0) {
+      return (
+        <Paper elevation={2} sx={{ p: 3 }}>
+          <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
+            Payment Method
+          </Typography>
+          <Box textAlign="center" py={4}>
+            <Typography variant="body1" color="text.secondary" gutterBottom>
+              No saved credit cards found.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Please add a payment method to continue with checkout.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => navigate('/credit-cards', { state: { from: '/checkout' } })}
+            >
+              Go to Manage Credit Cards
+            </Button>
+          </Box>
+        </Paper>
+      );
+    }
+
+    return (
+      <Paper elevation={2} sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.main">
+          Select Payment Method
         </Typography>
-      </Box>
-    </Paper>
-  );
+
+        <Alert severity="info" sx={{ mb: 2, mt: 2 }}>
+          This is a demo. Saved cards are used for checkout.
+        </Alert>
+
+        <Box sx={{ mt: 2 }}>
+          {savedCards.map((card) => (
+            <Card
+              key={card.id}
+              sx={{
+                mb: 2,
+                cursor: 'pointer',
+                border: selectedCardId === card.id ? '2px solid' : '1px solid',
+                borderColor: selectedCardId === card.id ? 'primary.main' : 'divider',
+                bgcolor: selectedCardId === card.id ? 'action.selected' : 'background.paper',
+                '&:hover': {
+                  bgcolor: 'action.hover'
+                }
+              }}
+              onClick={() => setSelectedCardId(card.id)}
+            >
+              <CardContent sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                <Radio
+                  checked={selectedCardId === card.id}
+                  onChange={() => setSelectedCardId(card.id)}
+                  sx={{ mt: -0.5 }}
+                />
+                <Box sx={{ flex: 1, ml: 1 }}>
+                  {card.isDefault && (
+                    <Chip
+                      label="Default"
+                      color="primary"
+                      size="small"
+                      icon={<CreditCardIcon />}
+                      sx={{ mb: 1 }}
+                    />
+                  )}
+                  <Typography variant="subtitle1" fontWeight="medium">
+                    {card.cardholderName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    {card.cardBrand || 'Card'}
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
+                    •••• •••• •••• {card.last4}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Expires: {card.expiryMonth}/{card.expiryYear}
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/credit-cards', { state: { from: '/checkout' } })}
+            >
+              Add New Card
+            </Button>
+          </Box>
+        </Box>
+
+        {/* Order summary in payment step */}
+        <Box mt={3} p={2} bgcolor="#f9f9f9" borderRadius={1}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Order Total
+          </Typography>
+          <Typography variant="h5" fontWeight="bold" color="primary.main">
+            {formatTRY(cartTotal)}
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  };
 
   // Step 4: Confirmation
   const renderConfirmation = () => (
@@ -359,8 +560,8 @@ const Checkout = () => {
   const renderStepContent = (step) => {
     switch (step) {
       case 0: return renderOrderSummary();
-      case 1: return renderAddressForm();
-      case 2: return renderPaymentForm();
+      case 1: return renderAddressSelection();
+      case 2: return renderPaymentSelection();
       case 3: return renderConfirmation();
       default: return null;
     }

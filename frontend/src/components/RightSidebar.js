@@ -8,6 +8,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LoginIcon from '@mui/icons-material/Login';
 import { useCart } from '../context/CartContext';
@@ -72,7 +73,7 @@ const RightSidebar = () => {
                         </Button>
                     </Box>
                 ) : (
-                    /* Logged in - Show Profile/Addresses/Logout */
+                    /* Logged in - Show Profile/Addresses/Credit Cards/Logout */
                     <List dense disablePadding>
                         <ListItemButton onClick={() => navigate('/profile')}>
                             <PersonIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
@@ -81,6 +82,10 @@ const RightSidebar = () => {
                         <ListItemButton onClick={() => navigate('/addresses')}>
                             <LocationOnIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
                             <ListItemText primary="Manage Addresses" primaryTypographyProps={{ variant: 'body2' }} />
+                        </ListItemButton>
+                        <ListItemButton onClick={() => navigate('/credit-cards')}>
+                            <CreditCardIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
+                            <ListItemText primary="Manage Credit Cards" primaryTypographyProps={{ variant: 'body2' }} />
                         </ListItemButton>
                         <ListItemButton onClick={handleLogout}>
                             <LogoutIcon fontSize="small" sx={{ mr: 1, color: 'error.main' }} />
