@@ -26,6 +26,12 @@ const RightSidebar = () => {
     // Calculate total price of all cart items
     const cartTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+    // Helper function to capitalize the first letter of a string (display only)
+    const capitalizeFirstLetter = (str) => {
+        if (!str || typeof str !== 'string') return str;
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
+
     const handleLogout = () => {
         logout();
         navigate('/');
@@ -41,7 +47,7 @@ const RightSidebar = () => {
 
             {/* User info */}
             <Typography variant="h6" sx={{ color: '#2e7d32', mb: 2, textAlign: 'center', fontWeight: 'bold' }}>
-                {isAuthenticated ? user?.username || 'User' : 'Guest'}
+                {isAuthenticated ? capitalizeFirstLetter(user?.username) || 'User' : 'Guest'}
             </Typography>
 
             {/* Account Section */}
