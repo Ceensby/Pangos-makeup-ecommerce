@@ -210,7 +210,13 @@ const Checkout = () => {
         postalCode: selectedAddress.postalCode,
         // Payment info
         ...paymentData,
-        amount: cartTotal
+        amount: cartTotal,
+        // Cart items for order item tracking
+        items: items.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price
+        }))
       };
 
       const response = await axios.post('http://localhost:8080/api/checkout/complete', checkoutData);

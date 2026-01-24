@@ -41,14 +41,31 @@ const RightSidebar = () => {
         <Box sx={{ width: 300, bgcolor: rightSidebarBg, minHeight: '100vh', padding: 2, borderLeft: '1px solid #c8e6c9', display: 'flex', flexDirection: 'column' }}>
 
             {/* Welcome message */}
-            <Typography variant="body2" color="text.secondary" align="center" fontSize="0.75rem" sx={{ mb: 2 }}>
+            <Typography
+                variant="h5"
+                align="center"
+                sx={{
+                    mb: 1,
+                    color: '#388e3c',
+                    fontFamily: '"Playfair Display", serif',
+                    fontSize: '1.5rem',
+                    fontWeight: 700
+                }}
+            >
                 Welcome to Pangos!
             </Typography>
 
             {/* User info */}
-            <Typography variant="h6" sx={{ color: '#2e7d32', mb: 2, textAlign: 'center', fontWeight: 'bold' }}>
-                {isAuthenticated ? capitalizeFirstLetter(user?.username) || 'User' : 'Guest'}
-            </Typography>
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold', mb: 0.5 }}>
+                    {isAuthenticated ? capitalizeFirstLetter(user?.username) || 'User' : 'Guest'}
+                </Typography>
+                {isAuthenticated && user?.fullName && (
+                    <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
+                        {user.fullName}
+                    </Typography>
+                )}
+            </Box>
 
             {/* Account Section */}
             <Box sx={{ mb: 2 }}>
@@ -93,10 +110,6 @@ const RightSidebar = () => {
                             <CreditCardIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
                             <ListItemText primary="Manage Credit Cards" primaryTypographyProps={{ variant: 'body2' }} />
                         </ListItemButton>
-                        <ListItemButton onClick={handleLogout}>
-                            <LogoutIcon fontSize="small" sx={{ mr: 1, color: 'error.main' }} />
-                            <ListItemText primary="Log Out" primaryTypographyProps={{ variant: 'body2', color: 'error.main' }} />
-                        </ListItemButton>
                     </List>
                 )}
             </Box>
@@ -104,14 +117,40 @@ const RightSidebar = () => {
             {/* My Orders button */}
             <Button
                 fullWidth
-                variant="outlined"
-                color="secondary"
+                variant="contained"
                 startIcon={<ListAltIcon />}
                 onClick={() => navigate('/orders')}
-                sx={{ mb: 2, bgcolor: 'white' }}
+                sx={{
+                    mb: 1,
+                    bgcolor: '#e91e63',
+                    color: 'white',
+                    '&:hover': { bgcolor: '#c2185b' },
+                    fontSize: '0.875rem',
+                    py: 0.75,
+                    whiteSpace: 'nowrap'
+                }}
             >
                 My Orders
             </Button>
+
+            {/* Log Out Button - moved below My Orders */}
+            {isAuthenticated && (
+                <Button
+                    fullWidth
+                    variant="text"
+                    startIcon={<LogoutIcon fontSize="small" />}
+                    onClick={handleLogout}
+                    sx={{
+                        mb: 2,
+                        color: 'error.main',
+                        fontSize: '0.875rem',
+                        justifyContent: 'flex-start',
+                        pl: 1
+                    }}
+                >
+                    Log Out
+                </Button>
+            )}
 
             <Divider sx={{ my: 2 }} />
 

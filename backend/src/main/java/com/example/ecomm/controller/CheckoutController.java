@@ -6,6 +6,10 @@ import com.example.ecomm.model.User;
 import com.example.ecomm.repository.OrderRepository;
 import com.example.ecomm.repository.PaymentRepository;
 import com.example.ecomm.repository.UserRepository;
+import com.example.ecomm.repository.OrderItemRepository;
+import com.example.ecomm.repository.ProductRepository;
+import com.example.ecomm.model.OrderItem;
+import com.example.ecomm.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +34,12 @@ public class CheckoutController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
     // DTO for checkout completion request
     public static class CheckoutRequest {
         // User info
@@ -49,6 +59,7 @@ public class CheckoutController {
 
         // Order info
         private Double amount;
+        private java.util.List<OrderItemDTO> items;
 
         // Getters and setters
         public String getCustomerName() {
@@ -130,6 +141,45 @@ public class CheckoutController {
         public void setAmount(Double amount) {
             this.amount = amount;
         }
+
+        public java.util.List<OrderItemDTO> getItems() {
+            return items;
+        }
+
+        public void setItems(java.util.List<OrderItemDTO> items) {
+            this.items = items;
+        }
+    }
+
+    // DTO for individual order items in checkout request
+    public static class OrderItemDTO {
+        private Long productId;
+        private Integer quantity;
+        private Double price;
+
+        public Long getProductId() {
+            return productId;
+        }
+
+        public void setProductId(Long productId) {
+            this.productId = productId;
+        }
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
+
+        public Double getPrice() {
+            return price;
+        }
+
+        public void setPrice(Double price) {
+            this.price = price;
+        }
     }
 
     // Complete checkout - creates order and payment atomically
@@ -178,6 +228,39 @@ public class CheckoutController {
         payment.setStatus("PAID");
         payment.setPaidAt(LocalDateTime.now());
         Payment savedPayment = paymentRepository.save(payment);
+
+        // Create order items from cart items
+        System.out.println("🛒 DEBUG: Received items array: " + request.getItems());
+        System.out
+                .println("🛒 DEBUG: Items count: " + (request.getItems() != null ? request.getItems().size() : "null"));
+
+        if (request.getItems() != null && !request.getItems().isEmpty()) {
+            System.out.println("✅ Creating " + request.getItems().size() + " order items...");
+            for (OrderItemDTO itemDTO : request.getItems()) {
+                System.out.println("   - Product ID: " + itemDTO.getProductId() + ", Qty: " + itemDTO.getQuantity()
+                        + ", Price: " + itemDTO.getPrice());
+
+                // Find the product
+                Product product = productRepository.findById(itemDTO.getProductId())
+                        .orElse(null);
+
+                if (product == null) {
+                    System.out.println("   ⚠️  WARNING: Product not found for ID: " + itemDTO.getProductId());
+                }
+
+                // Create order item
+                OrderItem orderItem = new OrderItem(
+                        savedOrder,
+                        product,
+                        itemDTO.getQuantity(),
+                        itemDTO.getPrice());
+                OrderItem savedItem = orderItemRepository.save(orderItem);
+                System.out.println("   ✅ Saved OrderItem ID: " + savedItem.getId());
+            }
+            System.out.println("✅ All order items created successfully!");
+        } else {
+            System.out.println("⚠️  WARNING: No items in request! OrderItems will be empty!");
+        }
 
         // Update order status to PAID
         savedOrder.setStatus("PAID");

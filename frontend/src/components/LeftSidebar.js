@@ -26,7 +26,7 @@ const LeftSidebar = () => {
         <Box sx={{ width: 300, bgcolor: sidebarBg, minHeight: '100vh', padding: 2, borderRight: '1px solid #ffccde' }}>
 
             {/* Category list */}
-            <List subheader={<ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 'bold' }}>CATEGORIES</ListSubheader>}>
+            <List subheader={<ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 'bold', color: '#c2185b', fontFamily: 'Poppins, serif', fontSize: 'calc(1.2rem + 3px)' }}>Categories</ListSubheader>}>
 
                 {/* Render each category with subcategories */}
                 {Object.entries(categories).map(([main, subs]) => (
