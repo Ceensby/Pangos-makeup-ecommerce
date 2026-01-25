@@ -81,63 +81,99 @@ const ProductList = () => {
                 <>
                     <Grid container spacing={2}>
                         {/* Display limited products or all based on showAll state */}
-                        {(showAll ? products : products.slice(0, 16)).map((product) => (
-                            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
-                                <Card
-                                    sx={{
-                                        height: '100%',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        cursor: 'pointer',
-                                        '&:hover': {
-                                            boxShadow: 4,
-                                            transform: 'translateY(-4px)',
-                                            transition: 'all 0.3s ease'
-                                        }
-                                    }}
-                                    onClick={() => handleProductClick(product.id)}
-                                >
+                        {(showAll ? products : products.slice(0, 16)).map((product, index) => {
+                            // Calculate alternating background color (same as ProductCarousel)
+                            const bgColor = index % 2 === 0 ? '#fce4ec' : '#e8f5e9';
 
-                                    {/* Product image */}
-                                    <CardMedia
-                                        component="img"
-                                        height="200"
-                                        image={product.imageUrl || 'https://via.placeholder.com/200?text=No+Image'}
-                                        alt={product.name}
-                                        sx={{ objectFit: 'contain', p: 1 }}
-                                    />
-                                    <CardContent sx={{ flexGrow: 1 }}>
+                            return (
+                                <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+                                    <Card
+                                        sx={{
+                                            height: '100%',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            cursor: 'pointer',
+                                            '&:hover': {
+                                                boxShadow: 4,
+                                                transform: 'translateY(-4px)',
+                                                transition: 'all 0.3s ease'
+                                            }
+                                        }}
+                                        onClick={() => handleProductClick(product.id)}
+                                    >
 
-                                        {/* Product info */}
-                                        <Typography variant="h6" component="div" noWrap>
-                                            {product.name}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" noWrap>
-                                            {product.brand}
-                                        </Typography>
-                                        <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
-                                            {formatTRY(product.price)}
-                                        </Typography>
-                                        {product.mainCategory && (
-                                            <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
-                                        )}
-                                    </CardContent>
-                                    <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
-                                        <Button
-                                            size="small"
-                                            variant="contained"
-                                            color="secondary"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Prevent card click when clicking Add to Cart
-                                                add(product);
+                                        {/* Product image with colored background (matching ProductCarousel) */}
+                                        <Box
+                                            sx={{
+                                                height: 220,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                position: 'relative',
+                                                overflow: 'hidden'
                                             }}
                                         >
-                                            Add to Cart
-                                        </Button>
-                                    </CardActions>
-                                </Card>
-                            </Grid>
-                        ))}
+                                            {/* Colored background box */}
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    bottom: 0,
+                                                    left: '10%',
+                                                    right: '10%',
+                                                    bgcolor: bgColor,
+                                                    borderRadius: 2
+                                                }}
+                                            />
+
+                                            {/* Product image on top of colored background */}
+                                            <CardMedia
+                                                component="img"
+                                                image={product.imageUrl || 'https://via.placeholder.com/200?text=No+Image'}
+                                                alt={product.name}
+                                                sx={{
+                                                    objectFit: 'contain',
+                                                    height: '90%',
+                                                    width: '90%',
+                                                    position: 'relative',
+                                                    zIndex: 1,
+                                                    borderRadius: 3
+                                                }}
+                                            />
+                                        </Box>
+                                        <CardContent sx={{ flexGrow: 1 }}>
+
+                                            {/* Product info */}
+                                            <Typography variant="h6" component="div" noWrap>
+                                                {product.name}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" noWrap>
+                                                {product.brand}
+                                            </Typography>
+                                            <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                                {formatTRY(product.price)}
+                                            </Typography>
+                                            {product.mainCategory && (
+                                                <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
+                                            )}
+                                        </CardContent>
+                                        <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
+                                            <Button
+                                                size="small"
+                                                variant="contained"
+                                                color="secondary"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Prevent card click when clicking Add to Cart
+                                                    add(product);
+                                                }}
+                                            >
+                                                Add to Cart
+                                            </Button>
+                                        </CardActions>
+                                    </Card>
+                                </Grid>
+                            );
+                        })}
                         {products.length === 0 && (
                             <Typography sx={{ mt: 2 }}>No products found in this category.</Typography>
                         )}

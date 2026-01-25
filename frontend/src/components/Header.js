@@ -12,6 +12,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import Badge from "@mui/material/Badge";
 import InputBase from "@mui/material/InputBase";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import { styled, alpha } from "@mui/material/styles";
 import { useCart } from "../context/CartContext";
 import pangosLogo from "../assets/pangos-logo.png";
@@ -156,6 +157,24 @@ export default function Header() {
 
         {/* Spacer */}
         <Box sx={{ flexGrow: 1 }} />
+
+        {/* About Us and FAQ Links */}
+        <Button
+          color="inherit"
+          component={RouterLink}
+          to="/about"
+          sx={{ mr: 2, textTransform: 'none', fontSize: '1rem' }}
+        >
+          About Us
+        </Button>
+        <Button
+          color="inherit"
+          component={RouterLink}
+          to="/faq"
+          sx={{ mr: 2, textTransform: 'none', fontSize: '1rem' }}
+        >
+          FAQ
+        </Button>
 
         {/* Cart button */}
         <IconButton
