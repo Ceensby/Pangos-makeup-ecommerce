@@ -1,50 +1,87 @@
 import React, { useEffect, useState } from 'react';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import ProductCard from '../components/ProductCard';
-import { getAllProducts } from '../services/productService';
+import { Box, CircularProgress, Typography } from '@mui/material';
+import ProductCarousel from '../components/ProductCarousel';
+import axios from 'axios';
 
- // UI: this page shows the product list
+const API_BASE = 'http://localhost:8080/api/products';
+
+// Utility function to shuffle array (Fisher-Yates algorithm)
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export default function Home() {
-  const [products, setProducts] = useState([]);
+  console.log('🏠 Home component rendering...');
+  const [allProducts, setAllProducts] = useState([]);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    let mounted = true;
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
 
-    getAllProducts()
-      .then((data) => {
-        if (mounted) {
-          setProducts(data);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (mounted) setLoading(false);
-      });
+        // Fetch all products for "New Arrivals"
+        const allResponse = await axios.get(API_BASE);
+        console.log('📦 All products fetched:', allResponse.data.length);
+        const shuffledAll = shuffleArray(allResponse.data);
+        setAllProducts(shuffledAll);
 
-    return () => {
-      mounted = false;
+        // Fetch featured products for "Featured Now"
+        const featuredResponse = await axios.get(`${API_BASE}/featured`);
+        console.log('⭐ Featured products fetched:', featuredResponse.data.length);
+        setFeaturedProducts(featuredResponse.data);
+
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchProducts();
   }, []);
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box textAlign="center" py={5}>
+        <Typography variant="h6" color="error">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Container sx={{ py: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Featured Products
-      </Typography>
-      {loading ? (
-        <Typography>Loading...</Typography>
-      ) : (
-        <Grid container spacing={2}>
-          {products.map((p) => (
-            <Grid item key={p.id} xs={12} sm={6} md={4}>
-              <ProductCard product={p} />
-            </Grid>
-          ))}
-        </Grid>
+    <Box sx={{ py: 3 }}>
+      {/* New Arrivals - Randomized */}
+      <ProductCarousel
+        title="New Arrivals"
+        products={allProducts}
+      />
+
+      {/* Featured Now - Filtered by featured=true */}
+      {featuredProducts.length > 0 && (
+        <ProductCarousel
+          title="Featured Now"
+          products={featuredProducts}
+        />
       )}
-    </Container>
+    </Box>
   );
 }

@@ -17,9 +17,9 @@ const LeftSidebar = () => {
     //Navigation Helper
     const navigate = useNavigate();
 
-    // Navigate to home with category filters
+    // Navigate to products page with category filters
     const handleCategoryClick = (main, sub) => {
-        navigate(`/?mainCategory=${main}&subCategory=${sub}`);
+        navigate(`/products?mainCategory=${main}&subCategory=${sub}`);
     };
 
     return (

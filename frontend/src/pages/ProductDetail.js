@@ -182,9 +182,7 @@ export default function ProductDetail() {
               width: "100%",
               maxHeight: 500,
               objectFit: "contain",
-              borderRadius: 2,
-              boxShadow: 1,
-              bgcolor: '#f9f9f9'
+              borderRadius: 5
             }}
           />
         </Grid>

@@ -39,6 +39,22 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
+    // Get only featured products
+    @GetMapping("/featured")
+    public List<ProductDTO> getFeatured() {
+        List<Product> products = repository.findByFeaturedTrueOrderByIdDesc();
+
+        return products.stream()
+                .map(p -> new ProductDTO(
+                        p.getId(),
+                        p.getName(),
+                        p.getDescription(),
+                        p.getPrice(),
+                        p.getImageUrl(),
+                        p.getDetails()))
+                .collect(Collectors.toList());
+    }
+
     // Returns products with optional filters
     @GetMapping
     public List<ProductDTO> getAll(

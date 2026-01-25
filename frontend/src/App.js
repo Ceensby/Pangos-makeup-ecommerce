@@ -11,6 +11,7 @@ import LeftSidebar from './components/LeftSidebar';
 import RightSidebar from './components/RightSidebar';
 
 // Pages
+import Home from './pages/Home';
 import ProductList from './pages/ProductList';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';
@@ -57,7 +58,8 @@ function App() {
                         {/* Main Content Area - Page Routes */}
                         <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: '#fff', overflowX: 'hidden' }}>
                             <Routes>
-                                <Route path="/" element={<ProductList />} />
+                                <Route path="/" element={<Home />} />
+                                <Route path="/products" element={<ProductList />} />
                                 <Route path="/products/:id" element={<ProductDetail />} />
                                 <Route path="/cart" element={<Cart />} />
                                 <Route path="/checkout" element={<Checkout />} />
