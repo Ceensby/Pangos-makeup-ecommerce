@@ -35,6 +35,21 @@ const Login = () => {
         }
     };
 
+    const handleDemoLogin = async () => {
+        setError('');
+        setLoading(true);
+
+        const result = await login('demo', 'demo');
+
+        setLoading(false);
+
+        if (result.success) {
+            navigate('/');
+        } else {
+            setError(result.error);
+        }
+    };
+
     return (
         <Box maxWidth={400} mx="auto" mt={5}>
             <Paper elevation={3} sx={{ p: 4 }}>
@@ -79,6 +94,18 @@ const Login = () => {
                         disabled={loading}
                     >
                         {loading ? 'Logging in...' : 'Login'}
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        fullWidth
+                        size="large"
+                        sx={{ mt: 2 }}
+                        disabled={loading}
+                        onClick={handleDemoLogin}
+                        color="secondary"
+                    >
+                        Log in as Demo
                     </Button>
                 </form>
 

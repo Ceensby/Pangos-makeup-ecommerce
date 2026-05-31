@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import ProductCarousel from '../components/ProductCarousel';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
-const API_BASE = 'http://localhost:8080/api/products';
+const API_BASE = `${API_BASE_URL}/products`;
 
 // Utility function to shuffle array (Fisher-Yates algorithm)
 const shuffleArray = (array) => {

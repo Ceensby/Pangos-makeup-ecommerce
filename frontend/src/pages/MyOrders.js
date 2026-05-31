@@ -15,8 +15,9 @@ import {
 import { formatTRY } from '../utils/formatPrice';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
-const API_URL = 'http://localhost:8080/api/orders/me';
+const API_URL = `${API_BASE_URL}/orders/me`;
 
 function MyOrders() {
     const navigate = useNavigate();
@@ -106,6 +107,11 @@ function MyOrders() {
             <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                 My Orders
             </Typography>
+
+            {/* Demo Notice */}
+            <Alert severity="info" sx={{ mb: 3 }}>
+                This is a demonstration site. All orders shown below are mock orders and no real products will be shipped.
+            </Alert>
 
             {/* Error message */}
             {error && (

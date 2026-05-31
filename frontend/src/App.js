@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Box, Snackbar, Alert } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box, Snackbar, Alert, Typography } from '@mui/material';
 import theme from './theme';
 
 // Layout Components
 import Header from './components/Header';
 import LeftSidebar from './components/LeftSidebar';
 import RightSidebar from './components/RightSidebar';
+import DemoBanner from './components/DemoBanner';
 
 // Pages
 import Home from './pages/Home';
@@ -50,6 +51,9 @@ function App() {
             <ThemeProvider theme={theme}>
                 <CssBaseline />
                 <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    {/* Demo Banner */}
+                    <DemoBanner />
+
                     {/* Global Header with Search */}
                     <Header />
 
@@ -79,6 +83,13 @@ function App() {
 
                         {/* Right Sidebar - Cart Preview */}
                         <RightSidebar />
+                    </Box>
+                    
+                    {/* Footer Demo Disclaimer */}
+                    <Box component="footer" sx={{ p: 2, bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
+                        <Typography variant="body2" color="text.secondary">
+                            © {new Date().getFullYear()} Pangos. This is a demonstration site. No real products are sold and no real payments are processed.
+                        </Typography>
                     </Box>
                 </Box>
 

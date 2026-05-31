@@ -5,9 +5,10 @@ import { Box, Typography, Grid, Card, CardMedia, CardContent, CardActions, Butto
 import { formatTRY } from '../utils/formatPrice';
 import { useCart } from '../context/CartContext';
 import AnnouncementBar from '../components/AnnouncementBar';
+import { API_BASE_URL } from '../config';
 
 // Backend API base URL
-const API_URL = 'http://localhost:8080/api/products';
+const API_URL = `${API_BASE_URL}/products`;
 
 
 

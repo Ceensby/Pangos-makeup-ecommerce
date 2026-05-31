@@ -9,6 +9,7 @@ import { Delete, Edit, Home } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import AddressForm from '../components/AddressForm';
+import { API_BASE_URL } from '../config';
 
 const Addresses = () => {
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ const Addresses = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.get('http://localhost:8080/api/addresses/me');
+            const response = await axios.get(`${API_BASE_URL}/addresses/me`);
             setAddresses(response.data);
         } catch (err) {
             console.error('Failed to fetch addresses', err);
@@ -61,7 +62,7 @@ const Addresses = () => {
         }
 
         try {
-            await axios.delete(`http://localhost:8080/api/addresses/${id}`);
+            await axios.delete(`${API_BASE_URL}/addresses/${id}`);
             setSuccess('Address deleted successfully');
             fetchAddresses();
         } catch (err) {
@@ -72,7 +73,7 @@ const Addresses = () => {
 
     const handleSetDefault = async (id) => {
         try {
-            await axios.put(`http://localhost:8080/api/addresses/${id}/set-default`);
+            await axios.put(`${API_BASE_URL}/addresses/${id}/set-default`);
             setSuccess('Default address updated');
             fetchAddresses();
         } catch (err) {
@@ -88,11 +89,11 @@ const Addresses = () => {
         try {
             if (editingAddress) {
                 // Update existing
-                await axios.put(`http://localhost:8080/api/addresses/${editingAddress.id}`, addressData);
+                await axios.put(`${API_BASE_URL}/addresses/${editingAddress.id}`, addressData);
                 setSuccess('Address updated successfully');
             } else {
                 // Create new
-                await axios.post('http://localhost:8080/api/addresses', addressData);
+                await axios.post(`${API_BASE_URL}/addresses`, addressData);
                 setSuccess('Address added successfully');
             }
             setOpenDialog(false);

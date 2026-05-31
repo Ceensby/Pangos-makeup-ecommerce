@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatTRY } from '../utils/formatPrice';
 import { Home, CreditCard as CreditCardIcon } from '@mui/icons-material';
+import { API_BASE_URL } from '../config';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Checkout = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [orderId, setOrderId] = useState(null);
   const [error, setError] = useState('');
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
 
   // Address state
   const [addresses, setAddresses] = useState([]);
@@ -60,7 +62,7 @@ const Checkout = () => {
     setLoadingAddresses(true);
     setError('');
     try {
-      const response = await axios.get('http://localhost:8080/api/addresses/me');
+      const response = await axios.get(`${API_BASE_URL}/addresses/me`);
       setAddresses(response.data);
 
       // Auto-select default address if available
@@ -81,7 +83,7 @@ const Checkout = () => {
   const fetchSavedCards = async () => {
     setLoadingSavedCards(true);
     try {
-      const response = await axios.get('http://localhost:8080/api/saved-cards/me');
+      const response = await axios.get(`${API_BASE_URL}/saved-cards/me`);
       setSavedCards(response.data);
 
       // Auto-select default card if available
@@ -169,10 +171,12 @@ const Checkout = () => {
   // Submit order to backend
   const handleOrderSubmit = async () => {
     try {
+      setIsProcessingOrder(true);
       // Get selected address data
       const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
       if (!selectedAddress) {
         setError('Selected address not found');
+        setIsProcessingOrder(false);
         return;
       }
 
@@ -183,6 +187,7 @@ const Checkout = () => {
         const selectedCard = savedCards.find(card => card.id === selectedCardId);
         if (!selectedCard) {
           setError('Selected card not found');
+          setIsProcessingOrder(false);
           return;
         }
         paymentData = {
@@ -193,11 +198,12 @@ const Checkout = () => {
         };
       } else {
         // Using manual entry
+        // MASK REAL CARD DATA before sending
         paymentData = {
           cardholderName: formData.cardholderName,
-          cardNumber: formData.cardNumber,
+          cardNumber: `**** **** **** ${formData.cardNumber.replace(/\s/g, '').slice(-4)}`,
           expiryDate: formData.expiryDate,
-          cvv: formData.cvv
+          cvv: '***'
         };
       }
 
@@ -219,7 +225,10 @@ const Checkout = () => {
         }))
       };
 
-      const response = await axios.post('http://localhost:8080/api/checkout/complete', checkoutData);
+      // Simulate network delay for fake payment processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const response = await axios.post(`${API_BASE_URL}/checkout/complete`, checkoutData);
 
       if (response.data.success) {
         // Save order ID
@@ -241,6 +250,8 @@ const Checkout = () => {
       } else {
         setError('Failed to place order. Please try again.');
       }
+    } finally {
+      setIsProcessingOrder(false);
     }
   };
 
@@ -461,8 +472,8 @@ const Checkout = () => {
           Select Payment Method
         </Typography>
 
-        <Alert severity="info" sx={{ mb: 2, mt: 2 }}>
-          This is a demo. Saved cards are used for checkout.
+        <Alert severity="warning" sx={{ mb: 2, mt: 2 }}>
+          This is a demo. No real payment is taken and card details are not stored or processed.
         </Alert>
 
         <Box sx={{ mt: 2 }}>
@@ -612,8 +623,9 @@ const Checkout = () => {
             variant="contained"
             onClick={handleNext}
             size="large"
+            disabled={isProcessingOrder}
           >
-            {activeStep === 2 ? `Place Order - ${formatTRY(cartTotal)}` : 'Continue'}
+            {isProcessingOrder ? 'Processing...' : (activeStep === 2 ? `Place Order - ${formatTRY(cartTotal)}` : 'Continue')}
           </Button>
         </Box>
       )}

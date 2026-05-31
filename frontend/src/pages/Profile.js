@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button, Paper, Alert, CircularProgress } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Profile = () => {
 
     const fetchProfile = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/users/me');
+            const response = await axios.get(`${API_BASE_URL}/users/me`);
             setProfile({
                 username: response.data.username || '',
                 email: response.data.email || '',
@@ -57,7 +58,7 @@ const Profile = () => {
         setSaving(true);
 
         try {
-            await axios.put('http://localhost:8080/api/users/me', {
+            await axios.put(`${API_BASE_URL}/users/me`, {
                 fullName: profile.fullName,
                 phoneNumber: profile.phoneNumber
             });

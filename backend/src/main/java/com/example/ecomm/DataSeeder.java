@@ -28,9 +28,17 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
+        // Check if the Excel file is present before attempting to load it
+        org.springframework.core.io.ClassPathResource xlsxResource = new ClassPathResource("ProductsInfos.xlsx");
+        if (!xlsxResource.exists()) {
+            System.out.println("⚠️  ProductsInfos.xlsx not found in classpath — skipping product seeding.");
+            System.out.println("    Add the file to src/main/resources/ to enable product seeding from Excel.");
+            return;
+        }
+
         System.out.println("Starting Data Seeding from ProductsInfos.xlsx...");
 
-        try (InputStream is = new ClassPathResource("ProductsInfos.xlsx").getInputStream();
+        try (InputStream is = xlsxResource.getInputStream();
                 Workbook workbook = new XSSFWorkbook(is)) {
 
             Sheet sheet = workbook.getSheetAt(0); // Assume dictionary is in first sheet

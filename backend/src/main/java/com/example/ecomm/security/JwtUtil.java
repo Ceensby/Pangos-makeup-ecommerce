@@ -4,8 +4,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,11 +17,26 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Secret key for JWT signing (in production, use environment variable)
-    private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    // Secret key loaded from application.properties / env var JWT_SECRET
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    private Key secretKey;
 
     // Token validity: 10 hours
     private final long JWT_TOKEN_VALIDITY = 10 * 60 * 60 * 1000;
+
+    @PostConstruct
+    public void init() {
+        // Pad/truncate the secret to at least 32 bytes for HS256
+        byte[] keyBytes = jwtSecret.getBytes();
+        if (keyBytes.length < 32) {
+            byte[] padded = new byte[32];
+            System.arraycopy(keyBytes, 0, padded, 0, keyBytes.length);
+            keyBytes = padded;
+        }
+        secretKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     // Extract username from token
     public String extractUsername(String token) {
@@ -38,7 +55,7 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -61,7 +78,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-                .signWith(SECRET_KEY)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 

@@ -8,6 +8,7 @@ import {
 import { Delete, Edit, CreditCard as CreditCardIcon } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const CreditCards = () => {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ const CreditCards = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.get('http://localhost:8080/api/saved-cards/me');
+            const response = await axios.get(`${API_BASE_URL}/saved-cards/me`);
             setSavedCards(response.data);
         } catch (err) {
             console.error('Failed to fetch saved cards', err);
@@ -89,7 +90,7 @@ const CreditCards = () => {
         }
 
         try {
-            await axios.delete(`http://localhost:8080/api/saved-cards/${id}`);
+            await axios.delete(`${API_BASE_URL}/saved-cards/${id}`);
             setSuccess('Card deleted successfully');
             fetchSavedCards();
         } catch (err) {
@@ -100,7 +101,7 @@ const CreditCards = () => {
 
     const handleSetDefault = async (id) => {
         try {
-            await axios.put(`http://localhost:8080/api/saved-cards/${id}/set-default`);
+            await axios.put(`${API_BASE_URL}/saved-cards/${id}/set-default`);
             setSuccess('Default card updated');
             fetchSavedCards();
         } catch (err) {
@@ -139,11 +140,11 @@ const CreditCards = () => {
         try {
             if (editingCard) {
                 // Update existing
-                await axios.put(`http://localhost:8080/api/saved-cards/${editingCard.id}`, cardData);
+                await axios.put(`${API_BASE_URL}/saved-cards/${editingCard.id}`, cardData);
                 setSuccess('Card updated successfully');
             } else {
                 // Create new
-                await axios.post('http://localhost:8080/api/saved-cards', cardData);
+                await axios.post(`${API_BASE_URL}/saved-cards`, cardData);
                 setSuccess('Card added successfully');
             }
             setOpenDialog(false);
@@ -209,6 +210,10 @@ const CreditCards = () => {
                     Add New Card
                 </Button>
             </Box>
+
+            <Alert severity="warning" sx={{ mb: 3 }}>
+                Demo only — cards shown here are not real and no real card data is stored.
+            </Alert>
 
             {success && (
                 <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>

@@ -15,10 +15,11 @@ import LockIcon from '@mui/icons-material/Lock';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { formatTRY } from '../utils/formatPrice';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 // Backend endpoints
-const ORDERS_API = 'http://localhost:8080/api/orders';
-const PAYMENTS_API = 'http://localhost:8080/api/payments';
+const ORDERS_API = `${API_BASE_URL}/orders`;
+const PAYMENTS_API = `${API_BASE_URL}/payments`;
 
 function Payment() {
 
@@ -114,16 +115,19 @@ function Payment() {
         setError('');
 
         try {
-            // Build request payload
+            // Build request payload - MASK REAL CARD DATA before sending
             const paymentData = {
                 orderId: order.id,
                 amount: order.amount || 0,
                 cardholderName: cardholderName.trim(),
-                cardNumber: cardNumber.replace(/\s/g, ''),
+                cardNumber: `**** **** **** ${cardNumber.replace(/\s/g, '').slice(-4)}`,
                 expiry: expiry.trim(),
-                cvv: cvv.trim(),
+                cvv: '***',
                 email: email.trim() || order.email
             };
+
+            // Simulate network delay for fake payment processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
             await axios.post(PAYMENTS_API, paymentData);
 
@@ -261,6 +265,10 @@ function Payment() {
                             Payment Information
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
+                        
+                        <Alert severity="warning" sx={{ mb: 3 }}>
+                            This is a demo. No real payment is taken and card details are not stored or processed.
+                        </Alert>
 
                         {/* Payment form */}
                         <form onSubmit={handleSubmit}>
