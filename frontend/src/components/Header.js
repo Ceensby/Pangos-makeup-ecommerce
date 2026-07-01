@@ -1,23 +1,41 @@
 // Header.js - Top navigation bar with logo, search functionality, and cart badge
+// Responsive: hamburger menu, account icon, collapsible search on mobile
+// Live autocomplete suggestions dropdown (Amazon/Trendyol style)
 
-import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, Link as RouterLink } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useSearchParams, useLocation, Link as RouterLink } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Badge from "@mui/material/Badge";
 import InputBase from "@mui/material/InputBase";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Paper from "@mui/material/Paper";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import ListItemText from "@mui/material/ListItemText";
+import Avatar from "@mui/material/Avatar";
+import Typography from "@mui/material/Typography";
+import Popper from "@mui/material/Popper";
+import Divider from "@mui/material/Divider";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled, alpha } from "@mui/material/styles";
 import { useCart } from "../context/CartContext";
+import { formatTRY } from "../utils/formatPrice";
+import axios from "axios";
+import { API_BASE_URL } from "../config";
 import pangosLogo from "../assets/pangos-logo.png";
 
-// Search input container
+// ─── Styled components ───────────────────────────────────────────────────────
+
+// Search input container (desktop/tablet — always visible)
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
@@ -43,7 +61,7 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
   justifyContent: 'center',
 }));
 
-// input style
+// Desktop search input style
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
   width: '100%',
@@ -55,11 +73,25 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function Header() {
+// ─── Component ───────────────────────────────────────────────────────────────
+
+export default function Header({ onMenuClick, onAccountClick, showMenuButton, showAccountButton }) {
   const { items } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
+  const [searchExpanded, setSearchExpanded] = useState(false);
+
+  // Autocomplete state
+  const isMobileView = useMediaQuery('(max-width:599px)');
+  const [suggestions, setSuggestions] = useState([]);
+  const [inputFocused, setInputFocused] = useState(false);
+  const allProductsRef = useRef([]);
+  const productsLoadedRef = useRef(false);
+  const debounceRef = useRef(null);
+  const searchContainerRef = useRef(null);
+  const appBarRef = useRef(null);
 
   // Calculate total items in cart
   const totalCount = items.reduce(
@@ -67,127 +99,445 @@ export default function Header() {
     0
   );
 
-  //  Keep input in sync with URL
+  // Keep input in sync with URL
   useEffect(() => {
     const qParam = searchParams.get('q');
     setSearchValue(qParam || '');
   }, [searchParams]);
 
-  // Run search (update URL)
+  // ─── Autocomplete logic ──────────────────────────────────────────────────
+
+  // Fetch all products for autocomplete (lazy, on first interaction)
+  const loadProducts = useCallback(async () => {
+    if (productsLoadedRef.current) return;
+    try {
+      const response = await axios.get(`${API_BASE_URL}/products`);
+      allProductsRef.current = response.data || [];
+      productsLoadedRef.current = true;
+    } catch (err) {
+      console.error('Failed to load products for autocomplete', err);
+    }
+  }, []);
+
+  // Compute suggestions based on query (debounced)
+  const updateSuggestions = useCallback((query) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      const q = query.toLowerCase();
+      const products = allProductsRef.current;
+
+      // Name matches first (highest relevance)
+      const nameMatches = products.filter(p =>
+        p.name && p.name.toLowerCase().includes(q)
+      );
+
+      let results = nameMatches.slice(0, 8);
+
+      // Fill remaining slots with description/brand matches
+      if (results.length < 8) {
+        const usedIds = new Set(results.map(p => p.id));
+        const otherMatches = products.filter(p =>
+          !usedIds.has(p.id) && (
+            (p.description && p.description.toLowerCase().includes(q)) ||
+            (p.brand && p.brand.toLowerCase().includes(q))
+          )
+        );
+        results = [...results, ...otherMatches.slice(0, 8 - results.length)];
+      }
+
+      setSuggestions(results);
+    }, 150);
+  }, []);
+
+  // Handle input change — update value and compute suggestions
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    if (!productsLoadedRef.current) {
+      loadProducts().then(() => updateSuggestions(value));
+    } else {
+      updateSuggestions(value);
+    }
+  };
+
+  // Handle suggestion click — navigate to product detail
+  const handleSuggestionClick = (productId) => {
+    navigate(`/products/${productId}`);
+    setSuggestions([]);
+    setInputFocused(false);
+    setSearchExpanded(false);
+    setSearchValue('');
+  };
+
+  // Highlight matching substring in product name
+  const highlightMatch = (text, query) => {
+    if (!query || !text) return text;
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <strong>{text.slice(idx, idx + query.length)}</strong>
+        {text.slice(idx + query.length)}
+      </>
+    );
+  };
+
+  // ─── Search navigation ──────────────────────────────────────────────────
+
+  // Run search — navigate to current page with ?q=... or /products?q=...
   const handleSearch = () => {
     if (!searchValue.trim()) return;
-
-    // Add or update 'q'
-    const params = new URLSearchParams(searchParams);
-    params.set('q', searchValue.trim());
-    navigate(`/?${params.toString()}`);
+    const q = encodeURIComponent(searchValue.trim());
+    // If on home page, stay on home and filter carousels; otherwise go to /products
+    if (location.pathname === '/') {
+      navigate(`/?q=${q}`);
+    } else {
+      navigate(`/products?q=${q}`);
+    }
+    setSearchExpanded(false);
+    setSuggestions([]);
+    setInputFocused(false);
   };
 
   // Clear search input
   const handleClear = () => {
     setSearchValue('');
-
-    const params = new URLSearchParams(searchParams);
-    params.delete('q');
-    const paramString = params.toString();
-    navigate(paramString ? `/?${paramString}` : '/');
-  };
-
-  // Search on Enter
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch();
+    setSearchExpanded(false);
+    setSuggestions([]);
+    setInputFocused(false);
+    // Navigate to clean path (remove q param)
+    if (location.pathname === '/products' && searchParams.get('q')) {
+      navigate('/products');
+    } else if (location.pathname === '/' && searchParams.get('q')) {
+      navigate('/');
     }
   };
 
-  return (
-    <AppBar position="sticky">
-      <Toolbar>
-        {/* Logo - clickable to home */}
-        <Box
-          component={RouterLink}
-          to="/"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            textDecoration: 'none',
-            mr: 2
-          }}
-        >
-          <img
-            src={pangosLogo}
-            alt="Pangos Cosmetic Beauty"
-            style={{
-              height: '40px',
-              objectFit: 'contain',
-              borderRadius: '8px'
-            }}
-          />
-        </Box>
+  // Key handler
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    } else if (e.key === 'Escape') {
+      setSuggestions([]);
+      setInputFocused(false);
+      if (searchExpanded) setSearchExpanded(false);
+    }
+  };
 
-        {/* Search bar */}
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search products…"
-            inputProps={{ 'aria-label': 'search' }}
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-          {/* Clear button */}
-          {searchValue && (
-            <IconButton
-              size="small"
-              onClick={handleClear}
+  // Focus handlers
+  const handleFocus = () => {
+    setInputFocused(true);
+    if (!productsLoadedRef.current) {
+      loadProducts().then(() => updateSuggestions(searchValue));
+    } else if (searchValue.trim()) {
+      updateSuggestions(searchValue);
+    }
+  };
+
+  const handleBlur = () => {
+    // Small delay so suggestion onMouseDown + onClick can fire before unmount
+    setTimeout(() => setInputFocused(false), 200);
+  };
+
+  // ─── Suggestion dropdown ────────────────────────────────────────────────
+
+  const shouldShowSuggestions = inputFocused && suggestions.length > 0;
+
+  // On desktop, anchor to the search container; on mobile, anchor to the AppBar
+  const popperAnchorEl = (isMobileView && searchExpanded)
+    ? appBarRef.current
+    : searchContainerRef.current;
+
+  const renderSuggestions = () => (
+    <Paper
+      elevation={8}
+      sx={{
+        maxHeight: { xs: 'calc(100vh - 70px)', sm: 400 },
+        overflow: 'auto',
+        borderRadius: { xs: 0, sm: 1 },
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <List disablePadding>
+        {suggestions.map((product, idx) => (
+          <React.Fragment key={product.id}>
+            <ListItemButton
+              onMouseDown={(e) => e.preventDefault()} // prevent input blur
+              onClick={() => handleSuggestionClick(product.id)}
               sx={{
-                position: 'absolute',
-                right: 8,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'white',
+                minHeight: 52,
+                py: 1,
+                px: 2,
+                '&:hover': { bgcolor: '#fce4ec' },
               }}
             >
-              <ClearIcon fontSize="small" />
+              <ListItemAvatar sx={{ minWidth: 52 }}>
+                <Avatar
+                  src={product.imageUrl || ''}
+                  alt={product.name}
+                  variant="rounded"
+                  sx={{ width: 40, height: 40, bgcolor: '#f5f5f5' }}
+                >
+                  {product.name?.[0]}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={highlightMatch(product.name, searchValue)}
+                secondary={product.brand || ''}
+                primaryTypographyProps={{
+                  noWrap: true,
+                  fontSize: '0.9rem',
+                  sx: { '& strong': { color: 'primary.main' } },
+                }}
+                secondaryTypographyProps={{
+                  noWrap: true,
+                  fontSize: '0.75rem',
+                  color: 'text.secondary',
+                }}
+              />
+              <Typography
+                variant="body2"
+                color="primary"
+                sx={{ ml: 1.5, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}
+              >
+                {formatTRY(product.price)}
+              </Typography>
+            </ListItemButton>
+            {idx < suggestions.length - 1 && <Divider component="li" />}
+          </React.Fragment>
+        ))}
+      </List>
+    </Paper>
+  );
+
+  // ─── Render ──────────────────────────────────────────────────────────────
+
+  return (
+    <>
+      <AppBar position="sticky" ref={appBarRef}>
+        <Toolbar sx={{ gap: { xs: 0.5, sm: 1 }, position: 'relative' }}>
+          {/* Hamburger menu button - visible on tablet/mobile */}
+          {showMenuButton && (
+            <IconButton
+              color="inherit"
+              aria-label="open categories menu"
+              onClick={onMenuClick}
+              edge="start"
+              sx={{ minWidth: 44, minHeight: 44 }}
+            >
+              <MenuIcon />
             </IconButton>
           )}
-        </Search>
 
-        {/* Spacer */}
-        <Box sx={{ flexGrow: 1 }} />
+          {/* Logo - clickable to home */}
+          <Box
+            component={RouterLink}
+            to="/"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              mr: { xs: 0.5, sm: 2 },
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src={pangosLogo}
+              alt="Pangos Cosmetic Beauty"
+              style={{ height: '40px', objectFit: 'contain', borderRadius: '8px' }}
+            />
+          </Box>
 
-        {/* About Us and FAQ Links */}
-        <Button
-          color="inherit"
-          component={RouterLink}
-          to="/about"
-          sx={{ mr: 2, textTransform: 'none', fontSize: '1rem' }}
-        >
-          About Us
-        </Button>
-        <Button
-          color="inherit"
-          component={RouterLink}
-          to="/faq"
-          sx={{ mr: 2, textTransform: 'none', fontSize: '1rem' }}
-        >
-          FAQ
-        </Button>
+          {/* Search bar — desktop/tablet: always visible in toolbar flow */}
+          <Search ref={searchContainerRef} sx={{ display: { xs: 'none', sm: 'block' } }}>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search products…"
+              inputProps={{ 'aria-label': 'search' }}
+              value={searchValue}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+            />
+            {/* Clear button */}
+            {searchValue && (
+              <IconButton
+                size="small"
+                onClick={handleClear}
+                sx={{
+                  position: 'absolute',
+                  right: 8,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'white',
+                }}
+              >
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Search>
 
-        {/* Cart button */}
-        <IconButton
-          color="inherit"
-          aria-label="cart"
-          component={RouterLink}
-          to="/cart"
-        >
-          <Badge badgeContent={totalCount} color="secondary">
-            <ShoppingCartIcon />
-          </Badge>
-        </IconButton>
-      </Toolbar>
-    </AppBar>
+          {/* Search toggle icon — mobile only, when search is collapsed */}
+          {!searchExpanded && (
+            <IconButton
+              color="inherit"
+              aria-label="open search"
+              onClick={() => setSearchExpanded(true)}
+              sx={{
+                display: { xs: 'inline-flex', sm: 'none' },
+                minWidth: 44,
+                minHeight: 44,
+              }}
+            >
+              <SearchIcon />
+            </IconButton>
+          )}
+
+          {/* Spacer */}
+          <Box sx={{ flexGrow: 1 }} />
+
+          {/* About Us and FAQ Links — hidden on mobile */}
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/about"
+            sx={{ mr: 2, textTransform: 'none', fontSize: '1rem', display: { xs: 'none', md: 'inline-flex' } }}
+          >
+            About Us
+          </Button>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/faq"
+            sx={{ mr: 2, textTransform: 'none', fontSize: '1rem', display: { xs: 'none', md: 'inline-flex' } }}
+          >
+            FAQ
+          </Button>
+
+          {/* Account icon — visible when right sidebar is hidden */}
+          {showAccountButton && (
+            <IconButton
+              color="inherit"
+              aria-label="account menu"
+              onClick={onAccountClick}
+              sx={{ minWidth: 44, minHeight: 44 }}
+            >
+              <AccountCircleIcon />
+            </IconButton>
+          )}
+
+          {/* Cart button */}
+          <IconButton
+            color="inherit"
+            aria-label="cart"
+            component={RouterLink}
+            to="/cart"
+            sx={{ minWidth: 44, minHeight: 44 }}
+          >
+            <Badge badgeContent={totalCount} color="secondary">
+              <ShoppingCartIcon />
+            </Badge>
+          </IconButton>
+
+          {/* ===== Mobile search overlay ===== */}
+          {searchExpanded && (
+            <Box
+              sx={{
+                display: { xs: 'flex', sm: 'none' },
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                bgcolor: 'primary.main',
+                zIndex: 2,
+                alignItems: 'center',
+                px: 1,
+                gap: 0.5,
+              }}
+            >
+              <SearchIcon sx={{ color: 'rgba(255,255,255,0.7)', ml: 1, flexShrink: 0 }} />
+              <InputBase
+                placeholder="Search products…"
+                inputProps={{ 'aria-label': 'search' }}
+                value={searchValue}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                autoFocus
+                sx={{
+                  flex: 1,
+                  color: 'white',
+                  bgcolor: alpha('#ffffff', 0.15),
+                  borderRadius: 1,
+                  px: 1.5,
+                  py: 0.5,
+                  fontSize: '1rem',
+                  '& .MuiInputBase-input::placeholder': {
+                    color: 'rgba(255,255,255,0.7)',
+                    opacity: 1,
+                  },
+                }}
+              />
+              {/* Submit search */}
+              {searchValue && (
+                <IconButton
+                  color="inherit"
+                  onClick={handleSearch}
+                  sx={{ minWidth: 44, minHeight: 44, flexShrink: 0 }}
+                >
+                  <SearchIcon />
+                </IconButton>
+              )}
+              {/* Close / clear mobile search */}
+              <IconButton
+                color="inherit"
+                aria-label="close search"
+                onClick={() => {
+                  setSearchExpanded(false);
+                  setSuggestions([]);
+                  setInputFocused(false);
+                  if (searchValue) handleClear();
+                }}
+                sx={{ minWidth: 44, minHeight: 44, flexShrink: 0 }}
+              >
+                <ClearIcon />
+              </IconButton>
+            </Box>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* ===== Autocomplete suggestions dropdown ===== */}
+      {/* Rendered outside AppBar via portal so it floats below the header */}
+      <Popper
+        open={shouldShowSuggestions && !!popperAnchorEl}
+        anchorEl={popperAnchorEl}
+        placement="bottom-start"
+        style={{
+          zIndex: 1301,
+          width: (isMobileView && searchExpanded)
+            ? (appBarRef.current?.offsetWidth || '100%')
+            : (searchContainerRef.current?.offsetWidth || 400),
+        }}
+        modifiers={[
+          { name: 'offset', options: { offset: [0, 2] } },
+        ]}
+      >
+        {renderSuggestions()}
+      </Popper>
+    </>
   );
 }

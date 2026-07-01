@@ -18,7 +18,7 @@ import { formatTRY } from '../utils/formatPrice';
 // Light green background
 const rightSidebarBg = '#e8f5e9';
 
-const RightSidebar = () => {
+const RightSidebar = ({ onNavigate }) => {
     const navigate = useNavigate();
     const { items, remove } = useCart();
     const { isAuthenticated, user, logout } = useAuth();
@@ -35,10 +35,25 @@ const RightSidebar = () => {
     const handleLogout = () => {
         logout();
         navigate('/');
+        if (onNavigate) onNavigate();
+    };
+
+    // Navigate and close drawer if inside one
+    const handleNav = (path) => {
+        navigate(path);
+        if (onNavigate) onNavigate();
     };
 
     return (
-        <Box sx={{ width: 300, bgcolor: rightSidebarBg, minHeight: '100vh', padding: 2, borderLeft: '1px solid #c8e6c9', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{
+            width: onNavigate ? '100%' : 300,
+            bgcolor: rightSidebarBg,
+            minHeight: onNavigate ? '100%' : '100vh',
+            padding: 2,
+            borderLeft: onNavigate ? 'none' : '1px solid #c8e6c9',
+            display: 'flex',
+            flexDirection: 'column'
+        }}>
 
             {/* Welcome message */}
             <Typography
@@ -81,8 +96,8 @@ const RightSidebar = () => {
                             variant="contained"
                             size="small"
                             startIcon={<LoginIcon />}
-                            onClick={() => navigate('/login')}
-                            sx={{ bgcolor: 'primary.main' }}
+                            onClick={() => handleNav('/login')}
+                            sx={{ bgcolor: 'primary.main', minHeight: 44 }}
                         >
                             Sign In
                         </Button>
@@ -90,7 +105,8 @@ const RightSidebar = () => {
                             fullWidth
                             variant="outlined"
                             size="small"
-                            onClick={() => navigate('/signup')}
+                            onClick={() => handleNav('/signup')}
+                            sx={{ minHeight: 44 }}
                         >
                             Sign Up
                         </Button>
@@ -98,15 +114,15 @@ const RightSidebar = () => {
                 ) : (
                     /* Logged in - Show Profile/Addresses/Credit Cards/Logout */
                     <List dense disablePadding>
-                        <ListItemButton onClick={() => navigate('/profile')}>
+                        <ListItemButton onClick={() => handleNav('/profile')} sx={{ minHeight: 44 }}>
                             <PersonIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
                             <ListItemText primary="Profile" primaryTypographyProps={{ variant: 'body2' }} />
                         </ListItemButton>
-                        <ListItemButton onClick={() => navigate('/addresses')}>
+                        <ListItemButton onClick={() => handleNav('/addresses')} sx={{ minHeight: 44 }}>
                             <LocationOnIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
                             <ListItemText primary="Manage Addresses" primaryTypographyProps={{ variant: 'body2' }} />
                         </ListItemButton>
-                        <ListItemButton onClick={() => navigate('/credit-cards')}>
+                        <ListItemButton onClick={() => handleNav('/credit-cards')} sx={{ minHeight: 44 }}>
                             <CreditCardIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />
                             <ListItemText primary="Manage Credit Cards" primaryTypographyProps={{ variant: 'body2' }} />
                         </ListItemButton>
@@ -119,7 +135,7 @@ const RightSidebar = () => {
                 fullWidth
                 variant="contained"
                 startIcon={<ListAltIcon />}
-                onClick={() => navigate('/orders')}
+                onClick={() => handleNav('/orders')}
                 sx={{
                     mb: 1,
                     bgcolor: '#e91e63',
@@ -127,7 +143,8 @@ const RightSidebar = () => {
                     '&:hover': { bgcolor: '#c2185b' },
                     fontSize: '0.875rem',
                     py: 0.75,
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    minHeight: 44
                 }}
             >
                 My Orders
@@ -145,7 +162,8 @@ const RightSidebar = () => {
                         color: 'error.main',
                         fontSize: '0.875rem',
                         justifyContent: 'flex-start',
-                        pl: 1
+                        pl: 1,
+                        minHeight: 44
                     }}
                 >
                     Log Out
@@ -168,7 +186,7 @@ const RightSidebar = () => {
                         {items.map((item) => (
                             <ListItem key={item.id}
                                 secondaryAction={
-                                    <IconButton edge="end" aria-label="delete" onClick={() => remove(item.id)} size="small">
+                                    <IconButton edge="end" aria-label="delete" onClick={() => remove(item.id)} size="small" sx={{ minWidth: 44, minHeight: 44 }}>
                                         <DeleteIcon fontSize="small" />
                                     </IconButton>
                                 }
@@ -192,8 +210,8 @@ const RightSidebar = () => {
                             fullWidth
                             variant="contained"
                             startIcon={<ShoppingCartIcon />}
-                            onClick={() => navigate('/cart')}
-                            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
+                            onClick={() => handleNav('/cart')}
+                            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' }, minHeight: 44 }}
                         >
                             Go to Cart
                         </Button>

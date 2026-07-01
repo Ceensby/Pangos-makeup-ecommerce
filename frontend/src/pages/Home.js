@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography, Button } from '@mui/material';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import ProductCarousel from '../components/ProductCarousel';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
@@ -22,6 +23,9 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const searchQuery = searchParams.get('q') || '';
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -68,20 +72,61 @@ export default function Home() {
     );
   }
 
+  // Client-side search filtering for Home page
+  const filterByQuery = (products) => {
+    if (!searchQuery.trim()) return products;
+    const q = searchQuery.toLowerCase();
+    return products.filter(product =>
+      (product.name && product.name.toLowerCase().includes(q)) ||
+      (product.description && product.description.toLowerCase().includes(q)) ||
+      (product.brand && product.brand.toLowerCase().includes(q))
+    );
+  };
+
+  const filteredAll = filterByQuery(allProducts);
+  const filteredFeatured = filterByQuery(featuredProducts);
+  const isSearching = searchQuery.trim().length > 0;
+
   return (
     <Box sx={{ py: 3 }}>
+      {/* Search results header */}
+      {isSearching && (
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Typography variant="h5" fontWeight="bold" color="primary.main">
+            Search results for "{searchQuery}"
+          </Typography>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => navigate('/')}
+            sx={{ textTransform: 'none' }}
+          >
+            Clear search
+          </Button>
+        </Box>
+      )}
+
       {/* New Arrivals - Randomized */}
       <ProductCarousel
-        title="New Arrivals"
-        products={allProducts}
+        title={isSearching ? 'Matching Products' : 'New Arrivals'}
+        products={filteredAll}
       />
 
       {/* Featured Now - Filtered by featured=true */}
-      {featuredProducts.length > 0 && (
+      {filteredFeatured.length > 0 && (
         <ProductCarousel
-          title="Featured Now"
-          products={featuredProducts}
+          title={isSearching ? 'Matching Featured' : 'Featured Now'}
+          products={filteredFeatured}
         />
+      )}
+
+      {/* No results message */}
+      {isSearching && filteredAll.length === 0 && filteredFeatured.length === 0 && (
+        <Box textAlign="center" py={5}>
+          <Typography variant="h6" color="text.secondary">
+            No products found matching "{searchQuery}"
+          </Typography>
+        </Box>
       )}
     </Box>
   );

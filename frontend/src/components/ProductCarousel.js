@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Box, Typography, IconButton, Card, CardMedia, CardContent, CardActions, Button } from '@mui/material';
+import { Box, Typography, IconButton, Card, CardMedia, CardContent, CardActions, Button, useMediaQuery } from '@mui/material';
 import { ChevronLeft, ChevronRight, ShoppingCart } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { formatTRY } from '../utils/formatPrice';
@@ -12,21 +12,27 @@ const ProductCarousel = ({ title, products }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [expanded, setExpanded] = useState(false);
 
+    // Responsive: how many cards visible at once
+    const isMobile = useMediaQuery('(max-width:767px)');
+    const isTablet = useMediaQuery('(min-width:768px) and (max-width:1023px)');
+    const visibleCards = isMobile ? 2 : isTablet ? 3 : 4;
+    const gapCount = visibleCards - 1;
+    const gapPx = 16; // gap: 2 = 16px
+
     // Scroll to exact card position (no drift/accumulation)
     const scroll = (direction) => {
         if (scrollContainerRef.current) {
             const container = scrollContainerRef.current;
             const newIndex = direction === 'left'
-                ? Math.max(0, currentIndex - 4)
-                : Math.min(products.length - 4, currentIndex + 4);
+                ? Math.max(0, currentIndex - visibleCards)
+                : Math.min(products.length - visibleCards, currentIndex + visibleCards);
 
             setCurrentIndex(newIndex);
 
             // Calculate exact scroll position based on card index
             const containerWidth = container.offsetWidth;
-            const cardWidth = (containerWidth - 48) / 4; // Exact card width
-            const gap = 16;
-            const scrollPosition = newIndex * (cardWidth + gap);
+            const cardWidth = (containerWidth - gapCount * gapPx) / visibleCards;
+            const scrollPosition = newIndex * (cardWidth + gapPx);
 
             container.scrollTo({
                 left: scrollPosition,
@@ -186,7 +192,7 @@ const ProductCarousel = ({ title, products }) => {
             </Box>
 
             {expanded ? (
-                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
                     {products.map((product, index) => renderProductCard(product, index))}
                 </Box>
             ) : (
@@ -207,9 +213,9 @@ const ProductCarousel = ({ title, products }) => {
                         <Box
                             key={product.id}
                             sx={{
-                                minWidth: 'calc((100% - 48px) / 4)',
-                                maxWidth: 'calc((100% - 48px) / 4)',
-                                width: 'calc((100% - 48px) / 4)',
+                                minWidth: `calc((100% - ${gapCount * gapPx}px) / ${visibleCards})`,
+                                maxWidth: `calc((100% - ${gapCount * gapPx}px) / ${visibleCards})`,
+                                width: `calc((100% - ${gapCount * gapPx}px) / ${visibleCards})`,
                                 flexShrink: 0
                             }}
                         >

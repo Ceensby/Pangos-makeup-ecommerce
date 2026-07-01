@@ -36,7 +36,7 @@ const Cart = () => {
             ) : (
                 <>
                     {/* Cart table */}
-                    <TableContainer component={Paper} elevation={0} variant="outlined">
+                    <TableContainer component={Paper} elevation={0} variant="outlined" sx={{ overflowX: 'auto' }}>
                         <Table>
                             <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                                 <TableRow>

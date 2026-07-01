@@ -240,7 +240,7 @@ const CreditCards = () => {
                     </Button>
                 </Paper>
             ) : (
-                <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(350px, 1fr))" gap={2}>
+                <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(280px, 1fr))" gap={2}>
                     {savedCards.map((card) => (
                         <Card key={card.id} elevation={2}>
                             <CardContent>

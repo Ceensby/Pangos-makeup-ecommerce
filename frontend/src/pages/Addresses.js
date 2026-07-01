@@ -163,7 +163,7 @@ const Addresses = () => {
                     </Button>
                 </Paper>
             ) : (
-                <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(350px, 1fr))" gap={2}>
+                <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(280px, 1fr))" gap={2}>
                     {addresses.map((address) => (
                         <Card key={address.id} elevation={2}>
                             <CardContent>

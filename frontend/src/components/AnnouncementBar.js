@@ -14,7 +14,7 @@ const scroll = keyframes`
   }
 `;
 
-const BarContainer = styled(Box)({
+const BarContainer = styled(Box)(({ theme }) => ({
     width: 'calc(100% + 48px)', // Extend beyond container padding (24px left + 24px right)
     backgroundColor: '#81c784', // Light green
     overflow: 'hidden',
@@ -25,7 +25,21 @@ const BarContainer = styled(Box)({
     marginBottom: '24px', // Restore spacing below bar
     marginLeft: '-24px', // Extend left to touch left sidebar
     marginRight: '-24px', // Extend right to touch right sidebar
-});
+    [theme.breakpoints.down('md')]: {
+        width: 'calc(100% + 32px)', // 16px left + 16px right
+        marginTop: '-16px',
+        marginBottom: '16px',
+        marginLeft: '-16px',
+        marginRight: '-16px',
+    },
+    [theme.breakpoints.down('sm')]: {
+        width: 'calc(100% + 24px)', // 12px left + 12px right
+        marginTop: '-12px',
+        marginBottom: '12px',
+        marginLeft: '-12px',
+        marginRight: '-12px',
+    },
+}));
 
 const ScrollingContent = styled(Box)({
     display: 'inline-block',

@@ -13,17 +13,25 @@ const categories = {
 // Light pink background
 const sidebarBg = '#ffeef5';
 
-const LeftSidebar = () => {
+const LeftSidebar = ({ onNavigate }) => {
     //Navigation Helper
     const navigate = useNavigate();
 
     // Navigate to products page with category filters
     const handleCategoryClick = (main, sub) => {
         navigate(`/products?mainCategory=${main}&subCategory=${sub}`);
+        // Close drawer if rendered inside one
+        if (onNavigate) onNavigate();
     };
 
     return (
-        <Box sx={{ width: 300, bgcolor: sidebarBg, minHeight: '100vh', padding: 2, borderRight: '1px solid #ffccde' }}>
+        <Box sx={{
+            width: onNavigate ? '100%' : 300,
+            bgcolor: sidebarBg,
+            minHeight: onNavigate ? '100%' : '100vh',
+            padding: 2,
+            borderRight: onNavigate ? 'none' : '1px solid #ffccde'
+        }}>
 
             {/* Category list */}
             <List subheader={<ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 'bold', color: '#c2185b', fontFamily: 'Poppins, serif', fontSize: 'calc(1.2rem + 3px)' }}>Categories</ListSubheader>}>
@@ -35,7 +43,11 @@ const LeftSidebar = () => {
 
                         {/* Subcategory buttons */}
                         {subs.map((sub) => (
-                            <ListItemButton key={sub} onClick={() => handleCategoryClick(main, sub)} sx={{ pl: 4 }}>
+                            <ListItemButton
+                                key={sub}
+                                onClick={() => handleCategoryClick(main, sub)}
+                                sx={{ pl: 4, minHeight: 44 }}
+                            >
                                 <ListItemText primary={sub} />
                             </ListItemButton>
                         ))}

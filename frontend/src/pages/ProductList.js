@@ -45,7 +45,19 @@ const ProductList = () => {
                 }
 
                 const response = await axios.get(url);
-                setProducts(response.data);
+                let fetchedProducts = response.data;
+
+                // Client-side search filtering (covers the case where backend doesn't filter by q)
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    fetchedProducts = fetchedProducts.filter(product =>
+                        (product.name && product.name.toLowerCase().includes(q)) ||
+                        (product.description && product.description.toLowerCase().includes(q)) ||
+                        (product.brand && product.brand.toLowerCase().includes(q))
+                    );
+                }
+
+                setProducts(fetchedProducts);
             } catch (error) {
                 console.error("Error fetching products", error);
             } finally {
@@ -61,10 +73,12 @@ const ProductList = () => {
         navigate(`/products/${productId}`);
     };
 
-    // Page title based on category
-    const title = subCategory
-        ? `${mainCategory} - ${subCategory}`
-        : (mainCategory || "New Arrivals");
+    // Page title based on category or search query
+    const title = searchQuery
+        ? `Search results for "${searchQuery}"`
+        : subCategory
+            ? `${mainCategory} - ${subCategory}`
+            : (mainCategory || "New Arrivals");
 
     return (
         <Box>
@@ -87,7 +101,7 @@ const ProductList = () => {
                             const bgColor = index % 2 === 0 ? '#fce4ec' : '#e8f5e9';
 
                             return (
-                                <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+                                <Grid item key={product.id} xs={6} sm={6} md={4} lg={3}>
                                     <Card
                                         sx={{
                                             height: '100%',
@@ -106,7 +120,7 @@ const ProductList = () => {
                                         {/* Product image with colored background (matching ProductCarousel) */}
                                         <Box
                                             sx={{
-                                                height: 220,
+                                                height: { xs: 140, sm: 180, md: 220 },
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
@@ -145,20 +159,20 @@ const ProductList = () => {
                                         <CardContent sx={{ flexGrow: 1 }}>
 
                                             {/* Product info */}
-                                            <Typography variant="h6" component="div" noWrap>
+                                            <Typography variant="h6" component="div" noWrap sx={{ fontSize: { xs: '0.85rem', sm: '1rem', md: '1.25rem' } }}>
                                                 {product.name}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" noWrap>
                                                 {product.brand}
                                             </Typography>
-                                            <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                                            <Typography variant="h6" color="primary" sx={{ mt: 1, fontSize: { xs: '0.9rem', sm: '1rem', md: '1.25rem' } }}>
                                                 {formatTRY(product.price)}
                                             </Typography>
                                             {product.mainCategory && (
                                                 <Chip label={product.mainCategory} size="small" sx={{ mt: 1 }} />
                                             )}
                                         </CardContent>
-                                        <CardActions sx={{ justifyContent: 'flex-end', px: 2 }}>
+                                        <CardActions sx={{ justifyContent: 'flex-end', px: { xs: 1, sm: 2 }, pb: { xs: 1, sm: 1 } }}>
                                             <Button
                                                 size="small"
                                                 variant="contained"
