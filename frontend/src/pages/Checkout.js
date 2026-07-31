@@ -5,14 +5,15 @@ import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatTRY } from '../utils/formatPrice';
-import { Home, CreditCard as CreditCardIcon } from '@mui/icons-material';
+import { Home, CreditCard as CreditCardIcon, InfoOutlined } from '@mui/icons-material';
 import { API_BASE_URL } from '../config';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { items, clear } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const isDemoUser = !!user?.username && user.username.toLowerCase() === 'demo';
 
   // Stepper state
   const [activeStep, setActiveStep] = useState(0);
@@ -558,9 +559,34 @@ const Checkout = () => {
       <Typography variant="h6" sx={{ mb: 1 }}>
         Your Order ID is: <strong>#{orderId}</strong>
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: isDemoUser ? 2 : 4 }}>
         Thank you for shopping with Pangos. Your order has been successfully placed!
       </Typography>
+
+      {isDemoUser && (
+        <Alert
+          icon={<InfoOutlined sx={{ color: '#e91e63' }} />}
+          severity="info"
+          sx={{
+            mb: 4,
+            textAlign: 'left',
+            borderRadius: 3,
+            bgcolor: '#fce4ec',
+            color: 'text.primary',
+            border: '1px solid #f8bbd0',
+            '& .MuiAlert-message': { width: '100%' },
+          }}
+        >
+          <Typography variant="body2" sx={{ fontWeight: 600, color: '#c2185b', mb: 0.5 }}>
+            Demo mode notice
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
+            Heads up: You&apos;re browsing as the demo guest. Orders placed in demo mode are
+            temporary and will be automatically removed 45 minutes after checkout. Sign up for a
+            free account to keep your order history.
+          </Typography>
+        </Alert>
+      )}
 
       <Box display="flex" gap={2} justifyContent="center">
         <Button variant="outlined" onClick={() => navigate('/')}>

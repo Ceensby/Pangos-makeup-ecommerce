@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, CircularProgress, Typography, Button } from '@mui/material';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import ProductCarousel from '../components/ProductCarousel';
+import AnnouncementBar from '../components/AnnouncementBar';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
@@ -56,18 +57,25 @@ export default function Home() {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress />
+      <Box>
+        {/* Same flow as ProductList — do not wrap AnnouncementBar in overflow:hidden */}
+        <AnnouncementBar />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+          <CircularProgress />
+        </Box>
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box textAlign="center" py={5}>
-        <Typography variant="h6" color="error">
-          {error}
-        </Typography>
+      <Box>
+        <AnnouncementBar />
+        <Box textAlign="center" py={5}>
+          <Typography variant="h6" color="error">
+            {error}
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -88,46 +96,52 @@ export default function Home() {
   const isSearching = searchQuery.trim().length > 0;
 
   return (
-    <Box sx={{ py: 3 }}>
-      {/* Search results header */}
-      {isSearching && (
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <Typography variant="h5" fontWeight="bold" color="primary.main">
-            Search results for "{searchQuery}"
-          </Typography>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => navigate('/')}
-            sx={{ textTransform: 'none' }}
-          >
-            Clear search
-          </Button>
-        </Box>
-      )}
+    <Box>
+      {/* Match ProductList: bar in normal document flow (negative margins must not be clipped) */}
+      <AnnouncementBar />
 
-      {/* New Arrivals - Randomized */}
-      <ProductCarousel
-        title={isSearching ? 'Matching Products' : 'New Arrivals'}
-        products={filteredAll}
-      />
+      {/* Carousel overflow containment stays below the bar so the strip is never cut */}
+      <Box sx={{ pb: 3, minWidth: 0, maxWidth: '100%', overflow: 'hidden' }}>
+        {/* Search results header */}
+        {isSearching && (
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Typography variant="h5" fontWeight="bold" color="primary.main">
+              Search results for "{searchQuery}"
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => navigate('/')}
+              sx={{ textTransform: 'none' }}
+            >
+              Clear search
+            </Button>
+          </Box>
+        )}
 
-      {/* Featured Now - Filtered by featured=true */}
-      {filteredFeatured.length > 0 && (
+        {/* New Arrivals - Randomized */}
         <ProductCarousel
-          title={isSearching ? 'Matching Featured' : 'Featured Now'}
-          products={filteredFeatured}
+          title={isSearching ? 'Matching Products' : 'New Arrivals'}
+          products={filteredAll}
         />
-      )}
 
-      {/* No results message */}
-      {isSearching && filteredAll.length === 0 && filteredFeatured.length === 0 && (
-        <Box textAlign="center" py={5}>
-          <Typography variant="h6" color="text.secondary">
-            No products found matching "{searchQuery}"
-          </Typography>
-        </Box>
-      )}
+        {/* Featured Now - Filtered by featured=true */}
+        {filteredFeatured.length > 0 && (
+          <ProductCarousel
+            title={isSearching ? 'Matching Featured' : 'Featured Now'}
+            products={filteredFeatured}
+          />
+        )}
+
+        {/* No results message */}
+        {isSearching && filteredAll.length === 0 && filteredFeatured.length === 0 && (
+          <Box textAlign="center" py={5}>
+            <Typography variant="h6" color="text.secondary">
+              No products found matching "{searchQuery}"
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

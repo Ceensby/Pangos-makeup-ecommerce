@@ -26,3 +26,8 @@ Thumbs.db
 *.pptx
 *.docx
 *.xlsx
+
+# Frontend env (local / secrets — never commit)
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local

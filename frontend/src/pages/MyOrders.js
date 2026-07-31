@@ -9,9 +9,9 @@ import {
     Alert,
     Card,
     CardContent,
-    Divider,
-    Grid
+    Divider
 } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { formatTRY } from '../utils/formatPrice';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -21,7 +21,8 @@ const API_URL = `${API_BASE_URL}/orders/me`;
 
 function MyOrders() {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
+    const isDemoUser = !!user?.username && user.username.toLowerCase() === 'demo';
 
     // Orders state
     const [orders, setOrders] = useState([]);
@@ -47,14 +48,13 @@ function MyOrders() {
             const response = await axios.get(API_URL);
             console.log('📦 Orders received from API:', response.data);
 
-            // Filter out orders with ID < 20 and sort newest first
-            const filteredOrders = response.data
-                .filter(order => order.id >= 20)
+            // Sort newest first (backend already scopes to the authenticated user)
+            const sortedOrders = response.data
                 .sort((a, b) => b.id - a.id);
 
-            console.log('📦 Filtered & sorted orders:', filteredOrders);
-            console.log('📦 First order orderItems:', filteredOrders[0]?.orderItems);
-            setOrders(filteredOrders);
+            console.log('📦 Sorted orders:', sortedOrders);
+            console.log('📦 First order orderItems:', sortedOrders[0]?.orderItems);
+            setOrders(sortedOrders);
         } catch (err) {
             console.error('Error fetching orders:', err);
             if (err.response?.status === 401 || err.response?.status === 403) {
@@ -107,6 +107,30 @@ function MyOrders() {
             <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
                 My Orders
             </Typography>
+
+            {isDemoUser && (
+                <Alert
+                    icon={<InfoOutlinedIcon sx={{ color: '#4caf50' }} />}
+                    severity="info"
+                    sx={{
+                        mb: 2,
+                        borderRadius: 3,
+                        bgcolor: '#e8f5e9',
+                        color: 'text.primary',
+                        border: '1px solid #c8e6c9',
+                        '& .MuiAlert-message': { width: '100%' },
+                    }}
+                >
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#2e7d32', mb: 0.5 }}>
+                        Demo mode notice
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>
+                        Heads up: You&apos;re browsing as the demo guest. Orders placed in demo mode are
+                        temporary and will be automatically removed 45 minutes after checkout. Sign up for a
+                        free account to keep your order history.
+                    </Typography>
+                </Alert>
+            )}
 
             {/* Demo Notice */}
             <Alert severity="info" sx={{ mb: 3 }}>
@@ -186,7 +210,11 @@ function MyOrders() {
                                                     {/* Product Image */}
                                                     <Box
                                                         component="img"
-                                                        src={item.productImageUrl || item.product?.imageUrl || 'https://via.placeholder.com/60?text=No+Image'}
+                                                        src={(() => {
+                                                            const imageUrl = item.productImageUrl || item.product?.imageUrl;
+                                                            if (!imageUrl) return 'https://via.placeholder.com/60?text=No+Image';
+                                                            return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+                                                        })()}
                                                         alt={item.productName || item.product?.name || 'Product'}
                                                         sx={{
                                                             width: 60,

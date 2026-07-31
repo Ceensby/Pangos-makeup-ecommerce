@@ -28,10 +28,21 @@ import Divider from "@mui/material/Divider";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled, alpha } from "@mui/material/styles";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { formatTRY } from "../utils/formatPrice";
 import axios from "axios";
 import { API_BASE_URL } from "../config";
 import pangosLogo from "../assets/pangos-logo.png";
+
+/** Independent hanging vines — different x anchors, lengths, sway timings (md+ hover) */
+const WELCOME_VINES = [
+  { left: '6%', height: 88, rotate: -8, delay: 0, swayDur: '2.6s', color: '#2e7d32', leafSide: 'left' },
+  { left: '22%', height: 118, rotate: -3, delay: 70, swayDur: '3.1s', color: '#388e3c', leafSide: 'right' },
+  { left: '40%', height: 96, rotate: 2, delay: 130, swayDur: '2.4s', color: '#2e7d32', leafSide: 'left' },
+  { left: '58%', height: 128, rotate: 5, delay: 40, swayDur: '3.4s', color: '#388e3c', leafSide: 'right' },
+  { left: '74%', height: 102, rotate: -5, delay: 160, swayDur: '2.9s', color: '#2e7d32', leafSide: 'left' },
+  { left: '90%', height: 112, rotate: 7, delay: 100, swayDur: '3.2s', color: '#388e3c', leafSide: 'right' },
+];
 
 // ─── Styled components ───────────────────────────────────────────────────────
 
@@ -47,7 +58,7 @@ const Search = styled('div')(({ theme }) => ({
   marginRight: theme.spacing(2),
   width: 'auto',
   flex: 1,
-  maxWidth: '500px',
+  maxWidth: '640px',
 }));
 
 // Search icon wrapper
@@ -77,11 +88,14 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function Header({ onMenuClick, onAccountClick, showMenuButton, showAccountButton }) {
   const { items } = useCart();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState('');
   const [searchExpanded, setSearchExpanded] = useState(false);
+
+  const welcomeName = (user?.fullName && user.fullName.trim()) || user?.username || 'there';
 
   // Autocomplete state
   const isMobileView = useMediaQuery('(max-width:599px)');
@@ -322,8 +336,8 @@ export default function Header({ onMenuClick, onAccountClick, showMenuButton, sh
 
   return (
     <>
-      <AppBar position="sticky" ref={appBarRef}>
-        <Toolbar sx={{ gap: { xs: 0.5, sm: 1 }, position: 'relative' }}>
+      <AppBar position="sticky" ref={appBarRef} sx={{ overflow: 'visible' }}>
+        <Toolbar sx={{ gap: { xs: 0.5, sm: 1 }, position: 'relative', overflow: 'visible' }}>
           {/* Hamburger menu button - visible on tablet/mobile */}
           {showMenuButton && (
             <IconButton
@@ -404,15 +418,185 @@ export default function Header({ onMenuClick, onAccountClick, showMenuButton, sh
             </IconButton>
           )}
 
-          {/* Spacer */}
-          <Box sx={{ flexGrow: 1 }} />
+          {/* Spacer — keeps greeting visually centered in the free header space */}
+          <Box sx={{ flexGrow: 1, minWidth: 8 }} />
+
+          {/* Site greeting — bold flat text; independent hanging vines on hover */}
+          <Box
+            className="welcome-greeting"
+            sx={{
+              display: { xs: 'none', sm: 'flex' },
+              position: 'relative',
+              alignItems: 'center',
+              justifyContent: 'center',
+              px: { sm: 1, md: 1.5 },
+              py: 0.5,
+              flexShrink: 1,
+              minWidth: 0,
+              maxWidth: { sm: 300, md: 440, lg: 520 },
+              overflow: 'visible',
+              zIndex: 20,
+              cursor: 'default',
+              '@keyframes vineSway': {
+                '0%, 100%': { transform: 'rotate(-2.8deg) translateX(-1px)' },
+                '50%': { transform: 'rotate(2.8deg) translateX(1px)' },
+              },
+              '&:hover .vine-strand': {
+                opacity: 0.92,
+                transform: 'scaleY(1)',
+              },
+              '&:hover .vine-sway': {
+                animationName: 'vineSway',
+                animationTimingFunction: 'ease-in-out',
+                animationIterationCount: 'infinite',
+              },
+            }}
+          >
+            <Typography
+              component="div"
+              noWrap
+              sx={{
+                position: 'relative',
+                zIndex: 2,
+                fontFamily: '"Roboto", "Helvetica Neue", "Arial", sans-serif',
+                fontStyle: 'normal',
+                fontSize: { sm: '1.2rem', md: '1.5rem', lg: '1.7rem' },
+                fontWeight: 600,
+                lineHeight: 1.15,
+                letterSpacing: '0.18em',
+                minWidth: 0,
+                color: '#ffffff',
+                // Soft double-beat every ~10s — subtle, not constant
+                '@keyframes welcomeHeartbeat': {
+                  '0%, 100%': { transform: 'scale(1)' },
+                  '3%': { transform: 'scale(1.035)' },
+                  '6%': { transform: 'scale(1)' },
+                  '9%': { transform: 'scale(1.025)' },
+                  '12%, 100%': { transform: 'scale(1)' },
+                },
+                animation: 'welcomeHeartbeat 10s ease-in-out infinite',
+              }}
+            >
+              {isAuthenticated ? (
+                <>Welcome back, {welcomeName}!</>
+              ) : (
+                <>Welcome to Pangos!</>
+              )}
+            </Typography>
+
+            {/* Independent vines across text width — not a single-center fan */}
+            <Box
+              aria-hidden
+              sx={{
+                display: { xs: 'none', md: 'block' },
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: '88%',
+                height: 140,
+                pointerEvents: 'none',
+                zIndex: 1,
+                overflow: 'visible',
+              }}
+            >
+              {WELCOME_VINES.map((vine, index) => (
+                <Box
+                  key={index}
+                  className="vine-strand"
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: vine.left,
+                    width: 36,
+                    height: vine.height,
+                    ml: '-18px',
+                    transform: 'scaleY(0)',
+                    transformOrigin: 'top center',
+                    opacity: 0,
+                    transition: 'transform 420ms ease, opacity 360ms ease',
+                    transitionDelay: '0ms',
+                    '.welcome-greeting:hover &': {
+                      transitionDelay: `${vine.delay}ms`,
+                    },
+                  }}
+                >
+                  <Box
+                    className="vine-sway"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      transformOrigin: 'top center',
+                      animationDuration: vine.swayDur,
+                      animationDelay: `${vine.delay + 200}ms`,
+                      filter: 'drop-shadow(0 2px 2px rgba(46, 125, 50, 0.22))',
+                    }}
+                  >
+                    <svg
+                      width="36"
+                      height={vine.height}
+                      viewBox={`0 0 36 ${vine.height}`}
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      style={{ display: 'block' }}
+                    >
+                      <path
+                        d={`M18 0 C${18 + vine.rotate} ${vine.height * 0.28}, ${18 - vine.rotate} ${vine.height * 0.58}, ${18 + vine.rotate * 0.6} ${vine.height - 4}`}
+                        stroke={vine.color}
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                      />
+                      <ellipse
+                        cx={vine.leafSide === 'left' ? 9 : 27}
+                        cy={vine.height * 0.32}
+                        rx="7"
+                        ry="4.5"
+                        fill={vine.color === '#2e7d32' ? '#388e3c' : '#2e7d32'}
+                        transform={`rotate(${vine.leafSide === 'left' ? -35 : 35} ${vine.leafSide === 'left' ? 9 : 27} ${vine.height * 0.32})`}
+                      />
+                      <ellipse
+                        cx={vine.leafSide === 'left' ? 27 : 9}
+                        cy={vine.height * 0.55}
+                        rx="6.5"
+                        ry="4"
+                        fill={vine.color}
+                        transform={`rotate(${vine.leafSide === 'left' ? 30 : -30} ${vine.leafSide === 'left' ? 27 : 9} ${vine.height * 0.55})`}
+                      />
+                      <ellipse
+                        cx="18"
+                        cy={vine.height * 0.78}
+                        rx="6"
+                        ry="3.8"
+                        fill={vine.color === '#2e7d32' ? '#388e3c' : '#2e7d32'}
+                        transform={`rotate(${vine.rotate * 2} 18 ${vine.height * 0.78})`}
+                      />
+                    </svg>
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          <Box sx={{ flexGrow: 1, minWidth: 8 }} />
+
+          {/* Subtle separator before utility nav links */}
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{
+              display: { xs: 'none', md: 'block' },
+              alignSelf: 'center',
+              height: 28,
+              borderColor: 'rgba(255,255,255,0.35)',
+              mr: 2,
+            }}
+          />
 
           {/* About Us and FAQ Links — hidden on mobile */}
           <Button
             color="inherit"
             component={RouterLink}
             to="/about"
-            sx={{ mr: 2, textTransform: 'none', fontSize: '1rem', display: { xs: 'none', md: 'inline-flex' } }}
+            sx={{ mr: 2, textTransform: 'none', fontSize: '0.95rem', fontWeight: 400, display: { xs: 'none', md: 'inline-flex' } }}
           >
             About Us
           </Button>
@@ -420,7 +604,7 @@ export default function Header({ onMenuClick, onAccountClick, showMenuButton, sh
             color="inherit"
             component={RouterLink}
             to="/faq"
-            sx={{ mr: 2, textTransform: 'none', fontSize: '1rem', display: { xs: 'none', md: 'inline-flex' } }}
+            sx={{ mr: 2, textTransform: 'none', fontSize: '0.95rem', fontWeight: 400, display: { xs: 'none', md: 'inline-flex' } }}
           >
             FAQ
           </Button>

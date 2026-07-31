@@ -73,9 +73,22 @@ function AppContent() {
                     showAccountButton={!rightSidebarInline}
                 />
 
-                <Box sx={{ display: 'flex', flexGrow: 1 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexGrow: 1,
+                        width: '100%',
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        overflow: 'hidden', // contain wide page content (e.g. Home carousels) so sidebars stay on-screen
+                    }}
+                >
                     {/* Left Sidebar - Desktop: inline */}
-                    {leftSidebarInline && <LeftSidebar />}
+                    {leftSidebarInline && (
+                        <Box sx={{ flexShrink: 0, maxWidth: 300 }}>
+                            <LeftSidebar />
+                        </Box>
+                    )}
 
                     {/* Left Sidebar - Tablet/Mobile: Drawer */}
                     {!leftSidebarInline && (
@@ -99,10 +112,12 @@ function AppContent() {
                         component="main"
                         sx={{
                             flexGrow: 1,
+                            flexBasis: 0,
                             p: { xs: 1.5, sm: 2, md: 3 },
                             bgcolor: '#fff',
                             overflowX: 'hidden',
                             minWidth: 0,
+                            maxWidth: '100%',
                         }}
                     >
                         <Routes>
@@ -124,7 +139,11 @@ function AppContent() {
                     </Box>
 
                     {/* Right Sidebar - Desktop/Tablet: inline */}
-                    {rightSidebarInline && <RightSidebar />}
+                    {rightSidebarInline && (
+                        <Box sx={{ flexShrink: 0, width: 270, maxWidth: 270, minWidth: 270 }}>
+                            <RightSidebar />
+                        </Box>
+                    )}
 
                     {/* Right Sidebar - Mobile: Drawer */}
                     {!rightSidebarInline && (
