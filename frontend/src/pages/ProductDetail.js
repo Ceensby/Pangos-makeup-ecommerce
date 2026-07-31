@@ -5,7 +5,6 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Divider from '@mui/material/Divider';
 import { getProductById } from "../services/productService";
 import { useCart } from "../context/CartContext";
-import { resolveImageUrl } from "../config";
 import { formatTRY } from "../utils/formatPrice";
 
 import Container from "@mui/material/Container";
@@ -176,7 +175,7 @@ export default function ProductDetail() {
         <Grid item xs={12} md={6}>
           <CardMedia
             component="img"
-            image={resolveImageUrl(product.imageUrl)}
+            image={product.imageUrl ? (product.imageUrl.startsWith('/') ? product.imageUrl : `/${product.imageUrl}`) : ''}
             alt={product.name}
             sx={{
               width: "100%",
