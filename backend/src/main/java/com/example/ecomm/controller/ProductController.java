@@ -35,7 +35,8 @@ public class ProductController {
                         p.getDescription(),
                         p.getPrice(),
                         p.getImageUrl(),
-                        p.getDetails()))
+                        p.getDetails(),
+                        p.getAttributes()))
                 .collect(Collectors.toList());
     }
 
@@ -51,7 +52,8 @@ public class ProductController {
                         p.getDescription(),
                         p.getPrice(),
                         p.getImageUrl(),
-                        p.getDetails()))
+                        p.getDetails(),
+                        p.getAttributes()))
                 .collect(Collectors.toList());
     }
 
@@ -85,7 +87,8 @@ public class ProductController {
                         p.getDescription(),
                         p.getPrice(),
                         p.getImageUrl(),
-                        p.getDetails()))
+                        p.getDetails(),
+                        p.getAttributes()))
                 .collect(Collectors.toList());
     }
 
@@ -99,7 +102,8 @@ public class ProductController {
                 p.getDescription(),
                 p.getPrice(),
                 p.getImageUrl(),
-                p.getDetails());
+                p.getDetails(),
+                p.getAttributes());
     }
 
 }

@@ -1,5 +1,7 @@
 package com.example.ecomm.dto;
 
+import java.util.Map;
+
 public class ProductDTO {
     private Long id;
     private String name;
@@ -7,17 +9,20 @@ public class ProductDTO {
     private Double price;
     private String imageUrl;
     private String details;
+    private Map<String, Object> attributes;
 
     public ProductDTO() {}
 
     public ProductDTO(Long id, String name, String description,
-                      Double price, String imageUrl, String details) {
+                      Double price, String imageUrl, String details,
+                      Map<String, Object> attributes) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.imageUrl = imageUrl;
         this.details = details;
+        this.attributes = attributes;
     }
 
     public Long getId() { return id; }
@@ -37,4 +42,7 @@ public class ProductDTO {
 
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
+
+    public Map<String, Object> getAttributes() { return attributes; }
+    public void setAttributes(Map<String, Object> attributes) { this.attributes = attributes; }
 }

@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import Divider from '@mui/material/Divider';
 import { getProductById } from "../services/productService";
 import { useCart } from "../context/CartContext";
 import { formatTRY } from "../utils/formatPrice";
@@ -54,88 +53,6 @@ export default function ProductDetail() {
     };
   }, [id]);
 
-
-  // Format attribute names (weight_g → Weight)
-  const formatAttributeName = (key) => {
-    return key
-      .replace(/_[a-z]+$/i, '') // Remove unit suffixes like _g, _ml
-      .replace(/_/g, ' ') // Replace underscores with spaces
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
-  };
-
-  // Clean attribute values (remove leading/trailing slashes)
-  const cleanAttributeValue = (value) => {
-    if (typeof value === 'string') {
-      return value.replace(/^\/+|\/+$/g, '').trim();
-    }
-    return String(value);
-  };
-
-  // Parse and render details object
-  const renderDetails = () => {
-    if (!product.details) return null;
-
-    let detailsObj = product.details;
-
-    // Parse if it's a JSON string
-    if (typeof product.details === 'string') {
-      try {
-        detailsObj = JSON.parse(product.details);
-      } catch {
-        return <Typography variant="body2">{product.details}</Typography>;
-      }
-    }
-
-    // Render as formatted attributes with LABELS as pills, VALUES as text
-    if (typeof detailsObj === 'object' && !Array.isArray(detailsObj)) {
-      return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {Object.entries(detailsObj).map(([key, value]) => (
-            <Box
-              key={key}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 2
-              }}
-            >
-              {/* Label as green pill */}
-              <Box
-                sx={{
-                  bgcolor: '#c8e6c9', // Soft green
-                  color: '#2e7d32', // Dark green text
-                  px: 2,
-                  py: 0.5,
-                  borderRadius: '16px',
-                  fontSize: '0.9rem',
-                  fontWeight: 500,
-                  display: 'inline-block',
-                  minWidth: '100px',
-                  textAlign: 'center'
-                }}
-              >
-                {formatAttributeName(key)}
-              </Box>
-              {/* Value as normal text */}
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 500,
-                  color: 'text.primary'
-                }}
-              >
-                {cleanAttributeValue(value)}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      );
-    }
-
-    return <Typography variant="body2">{String(detailsObj)}</Typography>;
-  };
 
   // Add product to cart
   const handleAddToCart = () => {
@@ -225,17 +142,66 @@ export default function ProductDetail() {
             </Button>
           </Box>
 
-          {/* 4-5) Product Attributes title + attributes list */}
-          {product.details && (
+          {/* 4-5) Product Attributes from JSONB attributes column */}
+          {product.attributes && typeof product.attributes === 'object' && Object.keys(product.attributes).length > 0 && (
             <Box sx={{ mt: 6, mb: 2 }}>
               <Typography
                 variant="h6"
                 fontWeight="bold"
-                sx={{ color: '#e91e63', mb: 2 }} // Neon pink
+                sx={{ color: '#4caf50', mb: 2 }}
               >
                 Product Attributes
               </Typography>
-              {renderDetails()}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {Object.entries(product.attributes).map(([key, value], index) => {
+                  const isEven = index % 2 === 0;
+                  const pillBg = isEven ? '#d5f0d5' : '#ffd6e0';
+                  const pillColor = isEven ? '#2e7d32' : '#c2185b';
+                  // Format snake_case → Title Case
+                  const label = key
+                    .replace(/_/g, ' ')
+                    .split(' ')
+                    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                    .join(' ');
+                  // Format value: booleans → Yes/No, rest as-is
+                  let displayValue;
+                  if (typeof value === 'boolean') {
+                    displayValue = value ? 'Yes' : 'No';
+                  } else {
+                    displayValue = String(value);
+                  }
+                  return (
+                    <Box
+                      key={key}
+                      sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
+                    >
+                      <Box
+                        sx={{
+                          bgcolor: pillBg,
+                          color: pillColor,
+                          px: 1.75,
+                          py: 0.5,
+                          borderRadius: '16px',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          display: 'inline-block',
+                          minWidth: '100px',
+                          textAlign: 'center',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {label}
+                      </Box>
+                      <Typography
+                        variant="body1"
+                        sx={{ fontWeight: 500, color: 'text.primary' }}
+                      >
+                        {displayValue}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
           )}
 

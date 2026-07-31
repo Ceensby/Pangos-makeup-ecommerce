@@ -1,6 +1,10 @@
 package com.example.ecomm.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.Map;
 
 @Entity
 
@@ -26,6 +30,10 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String details;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> attributes;
+
 
     // Constructor used to create a new product
     public Product() {}
@@ -42,6 +50,9 @@ public class Product {
         this.mainCategory = mainCategory;
         this.subCategory = subCategory;
     }
+
+    public Map<String, Object> getAttributes() { return attributes; }
+    public void setAttributes(Map<String, Object> attributes) { this.attributes = attributes; }
 
     // getters & setters
 
